@@ -337,6 +337,16 @@ void initPins() {
 	poz_1[15].pin = 3;
 	poz_2[15].pin = 2;
 	
+	for (uint8_t i = 0; i < 4; i++) {
+		dip_switch[i].port = &PORTD;
+		dip_switch[i].ddr = &DDRD;
+		dip_switch[i].in = &PIND;
+		dip_switch[i].pin = 7 - i;
+		setHigh(dip_switch[i]);
+		setInput(dip_switch[i]);
+	}
+	
+	
 	setOutput(statusPin);
 	
 	for (uint8_t i = 0; i < 16; i++)

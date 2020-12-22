@@ -9,7 +9,7 @@
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
  * MaeCAN MP5x16
- * V 1.0 
+ * V 1.1 
  * [2020-08-27.1]
  */
 
@@ -18,7 +18,7 @@
 #define NAME "M\u00E4CAN 16-fach MP5-Decoder"
 #define BASE_UID 0x4D430000
 #define ITEM "MP5x16"
-#define VERSION 0x0100
+#define VERSION 0x0101
 #define TYPE 0x0052
 
 #include <avr/io.h>
@@ -35,6 +35,7 @@
 uint32_t uid;
 uint16_t hash;
 uint16_t serial_nbr;
+uint16_t id;
 
 canFrame frame_in, frame_in_buffer;		// Buffers for incoming frames
 uint8_t new_frame = 0;					// New frame awaiting processing
@@ -152,6 +153,10 @@ int main(void)
 	
 	/* get serial number and calculate UID and hash */
 	serial_nbr = (uint16_t)(boot_signature_byte_get(22) << 8) | boot_signature_byte_get(23);
+	id = ~(0xfff0 + (readPin(dip_switch[3]) << 3) + (readPin(dip_switch[2]) << 2) + (readPin(dip_switch[1]) << 1) + readPin(dip_switch[0]));
+	if (id == 0) {
+		id = serial_nbr;
+	}
 	uid = BASE_UID + serial_nbr;
 	hash = generateHash(uid);
 	
@@ -232,7 +237,7 @@ int main(void)
 					if (frame_in.resp == 0 && compareUID(frame_in.data, uid) == 1) {
 						switch (frame_in.data[4]) {
 							case 0 : {
-								sendDeviceInfo(uid, hash, serial_nbr, 0, 34, ITEM, NAME);
+								sendDeviceInfo(uid, hash, id, 0, 34, ITEM, NAME);
 								break;
 							}
 							case 1 : {
@@ -311,8 +316,6 @@ int main(void)
 		
 		debounce();
 		
-		heartbeat();
-		
 		/* Reset switching time counter */
 		if (active_millis >= 1500) {
 			active = 0;
@@ -347,6 +350,7 @@ ISR(INT2_vect) {
 ISR(TIMER0_COMPA_vect) {
 	/* count up time counters */
 	heartbeat_millis++;
+	heartbeat();
 	debounce_millis++;
 	if (active == 1) {
 		active_millis++;

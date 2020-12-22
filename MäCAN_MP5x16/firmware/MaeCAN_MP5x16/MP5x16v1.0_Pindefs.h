@@ -42,6 +42,8 @@ ioPin aux_2[16];
 ioPin poz_1[16];
 ioPin poz_2[16];
 
+ioPin dip_switch[4];
+
 void setOutput(ioPin _pin);
 
 void setInput(ioPin _pin);
