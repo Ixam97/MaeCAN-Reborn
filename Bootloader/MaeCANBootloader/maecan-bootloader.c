@@ -9,24 +9,37 @@
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
  * MaeCAN Bootloader
- * V 1.1
- * [2020-08-27.1]
+ * V 1.2
+ * [2020-12-26.1]
  */
 
 /*
  *	Notwendige Einstellungen zum Programmieren:
  *  Bootloader-Section in den Fuses: 2048 Words
+ * 
+ *  Einstellungen in Atmel Studio:
  *  ATmega328P: Toolchain -> AVR/GNU Linker -> Misc.: -Wl,--section-start=.text=0x7000
+ * 				Fuses:
  *	ATmega2560: Toolchain -> AVR/GNU Linker -> Misc.: -Wl,--section-start=.text=0x3f000
+				Fuses: FF 92 FD
+ *  ATmega1280: Toolchain -> AVR/GNU Linker -> Misc.: -Wl,--section-start=.text=
+ * 				Fuses: 
  */
 
 
-/* Config options */
-// #define UART
+/* 
+ * Config options 
+ * Die nachfolgenden Deffinitionen bitte ausschließlich unter Toolchain -> AVR/GNU Compiler -> Symbols ändern! 
+ * Andernfalls ist die externe Makefile nicht zuverlässig.
+ */
 
+//#define UART
+
+//#define F_CPU 16000000UL
 
 //#define TYPE 0x51 /* Busankoppler (328P) */
-#define TYPE 0x52 /* MP5x16 (2560), Fuses: FF 92 FD*/
+//#define TYPE 0x52 /* MP5x16 (2560) */
+//#define TYPE 0x53 /* Dx32 (1280),(2560) */
 
 
 #include <avr/io.h>
@@ -35,15 +48,16 @@
 #include <util/delay.h>
 #include <avr/eeprom.h>
 #include <avr/wdt.h>
+#include <string.h>
 #include "mcp2515_basic.h"
 #include "mcan.h"
 
 #ifdef UART
 	#include "uart.h"
+	#define BAUDRATE 9600
 #endif
 
 #if TYPE == 0x51
-	#define F_CPU 16000000UL
 	#define PAGE_COUNT 224
 	#define LED_PORT PORTB
 	#define LED_DDR DDRB
@@ -53,7 +67,6 @@
 	#define ITEM "BAK-01"
 	#define BASE_UID 0x43440000
 #elif TYPE == 0x52
-	#define F_CPU 16000000UL
 	#define PAGE_COUNT 1008
 	#define LED_PORT PORTD
 	#define LED_DDR DDRD
@@ -109,7 +122,7 @@ uint8_t compareUID(uint8_t data[8], uint32_t _uid) {
 	}
 }
 
-void startApp() {
+void startApp(void) {
 	unsigned char temp;
 	cli();
 	temp = MCUCR;
@@ -155,7 +168,7 @@ void programPage (uint32_t page, uint8_t *buf)
 	SREG = sreg;
 }
 
-void main(void)
+int main(void)
 {
 	serial_nbr = (uint16_t)(boot_signature_byte_get(22) << 8) | boot_signature_byte_get(23);
 	can_uid = BASE_UID + serial_nbr;
@@ -183,7 +196,7 @@ void main(void)
 	#endif
 	
 	#ifdef UART
-		uart_init(UART_BAUD_SELECT(115200, F_CPU));
+		uart_init(UART_BAUD_SELECT(BAUDRATE, F_CPU));
 	#endif
 	
 	// Setup heartbeat timer:
@@ -218,7 +231,7 @@ void main(void)
 	LED_DDR |= (1 << LED_PIN);
 	LED_PORT |= (1 << LED_PIN);
 	
-	if (eeprom_read_byte(1023) == 0x01) {
+	if (eeprom_read_byte((void *)1023) == 0x01) {
 		// Bootloader triggered:
 		frame_out.data[4] = 0x01;
 		frame_out.data[5] = TYPE;
@@ -226,16 +239,16 @@ void main(void)
 		
 		frame_out.dlc = 7;
 		frame_out.data[4]++;
-		frame_out.data[5] = SPM_PAGESIZE >> 8;
-		frame_out.data[6] = SPM_PAGESIZE;
+		frame_out.data[5] = (uint8_t)(SPM_PAGESIZE >> 8);
+		frame_out.data[6] = (uint8_t)SPM_PAGESIZE;
 		sendCanFrame(&frame_out);
 		
 		frame_out.data[4]++;
-		frame_out.data[5] = PAGE_COUNT >> 8;
-		frame_out.data[6] = PAGE_COUNT;
+		frame_out.data[5] = (uint8_t)(PAGE_COUNT >> 8);
+		frame_out.data[6] = (uint8_t)PAGE_COUNT;
 		sendCanFrame(&frame_out);
 		
-		eeprom_update_byte(1023, 0);
+		eeprom_update_byte((void *)1023, 0);
 	}
     
 	while (1) 
@@ -250,19 +263,19 @@ void main(void)
 				sendDeviceInfo(can_uid, hash, serial_nbr, 0, 0, ITEM, NAME);
 			} else if (frame_in.cmd == 0x40) {
 				if (updating == 0) {
-					// Bootloader in den Update-Modus versetzen, wenn Updater Ping-Antwort best�tigt:
+					// Bootloader in den Update-Modus versetzen, wenn Updater Ping-Antwort best�tigt:
 					if (compareUID(frame_in.data, can_uid)) {
 						if (frame_in.dlc == 7 && frame_in.resp == 1 && frame_in.data[4] == 0x01){
 							if (frame_in.data[6] == 1) {
 								updating = 1;
 								update_start_millis = millis;
-								eeprom_update_byte(1023, 0);
+								eeprom_update_byte((void *)1023, 0);
 								#ifdef UART
 									uart_puts("Updating firmware...\n\r");
 								#endif
 							}
 						} else if (frame_in.dlc == 4) {
-							eeprom_update_byte(1023, 1);
+							eeprom_update_byte((void *)1023, 1);
 						}
 					}
 				} else {

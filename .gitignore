@@ -4,3 +4,6 @@
 *.b#*
 *.s#*
 **/docs
+**/CAMoutputs
+lufa-100807
+**/MäCAN_Dx32_USB

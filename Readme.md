@@ -3,13 +3,22 @@
 Die zweite Generaton der MäCAN-Komponenten für den [Märklin CAN-Bus][candoku]
 
 - <b>[MäCAN _Bootloader_][bootloader]</b><br>
-    <img src="https://img.shields.io/badge/Software-V1.1-007EC6?style=flat-square"/>
+    <img src="https://img.shields.io/badge/Software-V1.2-007EC6?style=flat-square"/>
 - <b>[MäCAN _MP5x16_][mp5x16]</b><br>
     <img src="https://img.shields.io/badge/Hardware-V1.0-FE7D37?style=flat-square"/>
     <img src="https://img.shields.io/badge/Software-V1.0-FE7D37?style=flat-square"/>
 - <b>[MäCAN _Dx32_][dx32]</b><br>
-    <img src="https://img.shields.io/badge/Hardware-V1.0-FE7D37?style=flat-square"/>
+    <img src="https://img.shields.io/badge/Hardware-V1.1-FE7D37?style=flat-square"/>
 ## Changelog
+
+### [2020-12-26.1]
+#### Änderungen:
+- [Dx32][dx32] | Fehlerhafte Anbindung der externen Taktquelle für die USB-Schnittstelle korrigiert (Hardware V1.1).
+- [Bootloader][bootloader] | Makefile hinzugefügt, mit der der Bootloader Außerhalb von Atmel Studio für eines oder alle Boards kompilliert werden kann (Software V1.2).
+- [Bootloader][bootloader] | main.c durch maecan-bootloader.c ersetzt.
+
+#### Hinzugefügt:
+- [Bootloader][bootloader] | Vorkompillierte Hex-Dateien für Busankoppler und MP5x16 hinzugefügt.
 
 ### [2020-12-22.1]
 #### Änderungen:
