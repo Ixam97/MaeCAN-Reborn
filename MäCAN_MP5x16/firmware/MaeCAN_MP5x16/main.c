@@ -9,16 +9,16 @@
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
  * MaeCAN MP5x16
- * V 1.1 
- * [2020-08-27.1]
+ * V 1.2 
+ * [2020-12-26.2]
  */
 
-#define F_CPU 16000000UL
+// #define F_CPU 16000000UL
 
 #define NAME "M\u00E4CAN 16-fach MP5-Decoder"
 #define BASE_UID 0x4D430000
 #define ITEM "MP5x16"
-#define VERSION 0x0101
+#define VERSION 0x0102
 #define TYPE 0x0052
 
 #include <avr/io.h>
@@ -27,6 +27,7 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 #include <avr/wdt.h>
+#include <string.h>
 
 #include "mcp2515_basic.h"
 #include "mcan.h"
@@ -84,20 +85,21 @@ void configChannel(uint8_t channel) {
 	
 	if (channel > 2 && (channel + 1) % 2 == 0) {
 		strcat(config_string, ADDRESS);
-		sendConfigInfoSlider(uid, hash, channel, 1, 2048, eeprom_read_word(channel * 2), config_string);
+		sendConfigInfoSlider(uid, hash, channel, 1, 2048, eeprom_read_word((void *)(channel * 2)), config_string);
 	} else if (channel > 2 && channel % 2 == 0){
 		strcat(config_string, FB_GREEN);
-		sendConfigInfoSlider(uid, hash, channel, 1, 2048, eeprom_read_word(channel * 2) , config_string);
+		sendConfigInfoSlider(uid, hash, channel, 1, 2048, eeprom_read_word((void *)(channel * 2)) , config_string);
 	}
 }
 
 uint16_t getAccUID(uint8_t _index) {
 	/* Generating accessory UID from address and protocol */
-	if (eeprom_read_word(2) == 0) {
-		return 0x3800 + eeprom_read_word((4 * _index) + 6) - 1;
-	} else if (eeprom_read_word(2) == 1) {
-		return 0x3000 + eeprom_read_word((4 * _index) + 6) - 1;
+	if (eeprom_read_word((void *)2) == 0) {
+		return 0x3800 + eeprom_read_word((void *)((4 * _index) + 6)) - 1;
+	} else if (eeprom_read_word((void *)2) == 1) {
+		return 0x3000 + eeprom_read_word((void *)((4 * _index) + 6)) - 1;
 	}
+	return 0;
 }
 
 void heartbeat() {
@@ -168,12 +170,12 @@ int main(void)
 	setInput(intPin);
 	setHigh(intPin);
 	
-	/* Setup heartbeat timer */
-	TCCR0A |= (1 << WGM01);
-	OCR0A = 249;
-	TIMSK0 |= (1 << OCIE0A);
+		// Setup heartbeat timer:
+	TCCR0A |= (1 << WGM01); // Timer 0 clear time on compare match
+	OCR0A = (F_CPU / (64 * 1000UL)) - 1; // Timer 0 compare value
+	TIMSK0 |= (1 << OCIE0A); // Timer interrupt
 	sei();
-	TCCR0B |= ((1 << CS01)|(1 << CS00));
+	TCCR0B |= ((1 << CS01)|(1 << CS00)); // Set timer 0 prescaler to 64
 	
 	/* Init CAN bus */
 	mcp2515_init();
@@ -187,11 +189,11 @@ int main(void)
 			req_position[i] = is_position[i];
 			
 			if (is_position[i] == 1) {
-				sendS88Event(((uint32_t)eeprom_read_word(4) << 16) + eeprom_read_word((i*4)+8), hash, 0, 1);
-				sendS88Event(((uint32_t)eeprom_read_word(4) << 16) + eeprom_read_word((i*4)+8) + 1, hash, 1, 0);
+				sendS88Event(((uint32_t)eeprom_read_word((void *)4) << 16) + eeprom_read_word((void *)((i*4)+8)), hash, 0, 1);
+				sendS88Event(((uint32_t)eeprom_read_word((void *)4) << 16) + eeprom_read_word((void *)((i*4)+8)) + 1, hash, 1, 0);
 			} else if (is_position[i] == 0) {
-				sendS88Event(((uint32_t)eeprom_read_word(4) << 16) + eeprom_read_word((i*4)+8), hash, 1, 0);
-				sendS88Event(((uint32_t)eeprom_read_word(4) << 16) + eeprom_read_word((i*4)+8) + 1, hash, 0, 1);
+				sendS88Event(((uint32_t)eeprom_read_word((void *)4) << 16) + eeprom_read_word((void *)((i*4)+8)), hash, 1, 0);
+				sendS88Event(((uint32_t)eeprom_read_word((void *)4) << 16) + eeprom_read_word((void *)((i*4)+8)) + 1, hash, 0, 1);
 			}
 		} else {
 			connected[i] = 0;
@@ -220,7 +222,7 @@ int main(void)
 						if (compareUID(frame_in.data, uid) == 1) {
 							
 							/* Write bootloader request flag to EEPROM and reset. */
-							eeprom_update_byte(1023, 1);
+							eeprom_update_byte((void *)1023, 1);
 							_delay_ms(100);
 							reset_request = 1;
 						}
@@ -241,11 +243,11 @@ int main(void)
 								break;
 							}
 							case 1 : {
-								sendConfigInfoDropdown(uid, hash, 1, 2, eeprom_read_word(2), "Protokoll_NRMA-DCC_Motorola");
+								sendConfigInfoDropdown(uid, hash, 1, 2, eeprom_read_word((void *)2), "Protokoll_NRMA-DCC_Motorola");
 								break;
 							}
 							case 2 : {
-								sendConfigInfoSlider(uid, hash, 2, 1, 2048, eeprom_read_word(4), "R\u00FCckmelde-Bus_1_2048");
+								sendConfigInfoSlider(uid, hash, 2, 1, 2048, eeprom_read_word((void *)4), "R\u00FCckmelde-Bus_1_2048");
 							}
 							default : {
 								configChannel(frame_in.data[4]);
@@ -258,7 +260,7 @@ int main(void)
 				case SYS_CMD : {
 					/* Write config data to EEPROM */
 					if (frame_in.resp == 0 && compareUID(frame_in.data, uid) == 1 && frame_in.data[4] == SYS_STAT) {
-						eeprom_update_word(frame_in.data[5] * 2, (frame_in.data[6] << 8) + frame_in.data[7]);
+						eeprom_update_word((void *)(frame_in.data[5] * 2), (frame_in.data[6] << 8) + frame_in.data[7]);
 						sendConfigConfirm(uid, hash, frame_in.data[5]);
 					}
 				}
@@ -280,21 +282,21 @@ int main(void)
 		/* Update S88 feedback and is_position */
 		for (uint8_t i = 0; i < 16; i++) {
 			if (aux_1_laststate[i] == 1 && aux_1_lastreport[i] == 0 && active == 0 && connected[i] == 1) {
-				sendS88Event(((uint32_t)eeprom_read_word(4) << 16) + eeprom_read_word((i*4)+8), hash, 0, 1);
+				sendS88Event(((uint32_t)eeprom_read_word((void *)4) << 16) + eeprom_read_word((void *)((i*4)+8)), hash, 0, 1);
 				aux_1_lastreport[i] = 1;
 				is_position[i] = 1;
 				sendACCEvent((uint32_t)getAccUID(i), hash, 1, 0);
 			} else if (aux_1_laststate[i] == 0 && aux_1_lastreport[i] == 1 && connected[i] == 1) {
-				sendS88Event(((uint32_t)eeprom_read_word(4) << 16) + eeprom_read_word((i*4)+8), hash, 1, 0);
+				sendS88Event(((uint32_t)eeprom_read_word((void *)4) << 16) + eeprom_read_word((void *)((i*4)+8)), hash, 1, 0);
 				aux_1_lastreport[i] = 0;
 			}
 			if (aux_2_laststate[i] == 1 && aux_2_lastreport[i] == 0 && active == 0 && connected[i] == 1) {
-				sendS88Event(((uint32_t)eeprom_read_word(4) << 16) + eeprom_read_word((i*4)+8) + 1, hash, 0, 1);
+				sendS88Event(((uint32_t)eeprom_read_word((void *)4) << 16) + eeprom_read_word((void *)((i*4)+8)) + 1, hash, 0, 1);
 				aux_2_lastreport[i] = 1;
 				is_position[i] = 0;
 				sendACCEvent((uint32_t)getAccUID(i), hash, 0, 0 && connected[i] == 1);
 			} else if (aux_2_laststate[i] == 0 && aux_2_lastreport[i] == 1) {
-				sendS88Event(((uint32_t)eeprom_read_word(4) << 16) + eeprom_read_word((i*4)+8) + 1, hash, 1, 0);
+				sendS88Event(((uint32_t)eeprom_read_word((void *)4) << 16) + eeprom_read_word((void *)((i*4)+8)) + 1, hash, 1, 0);
 				aux_2_lastreport[i] = 0;
 			}
 		}

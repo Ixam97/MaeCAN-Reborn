@@ -9,8 +9,8 @@
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
  * MaeCAN Bootloader
- * V 1.2
- * [2020-12-26.1]
+ * V 1.3
+ * [2020-12-26.2]
  */
 
 /*
@@ -201,10 +201,10 @@ int main(void)
 	
 	// Setup heartbeat timer:
 	TCCR0A |= (1 << WGM01); // Timer 0 clear time on compare match
-	OCR0A = 249; // Timer 0 compare value
+	OCR0A = (F_CPU / (64 * 1000UL)) - 1; // Timer 0 compare value
 	TIMSK0 |= (1 << OCIE0A); // Timer interrupt
 	sei();
-	TCCR0B |= ((1 << CS01)|(1 << CS00)); // Set timer 0 prescaler to 1
+	TCCR0B |= ((1 << CS01)|(1 << CS00)); // Set timer 0 prescaler to 64
 	
 	frame_out.cmd = 0x40;
 	frame_out.resp = 1;
@@ -220,7 +220,7 @@ int main(void)
 
 	#ifdef UART	
 		uart_puts("\n\rMaeCAN Bootloader startup\n\r");
-		uart_puts(DEVICE);
+		uart_puts(NAME);
 		uart_puts(", UID 0x");
 		char uid_string[8];
 		ltoa(can_uid, uid_string, 16);
@@ -250,7 +250,7 @@ int main(void)
 		
 		eeprom_update_byte((void *)1023, 0);
 	}
-    
+	
 	while (1) 
     {
 		if (new_frame == 1) {

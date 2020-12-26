@@ -3,13 +3,18 @@
 Die zweite Generaton der MäCAN-Komponenten für den [Märklin CAN-Bus][candoku]
 
 - <b>[MäCAN _Bootloader_][bootloader]</b><br>
-    <img src="https://img.shields.io/badge/Software-V1.2-007EC6?style=flat-square"/>
+    <img src="https://img.shields.io/badge/Software-V1.3-007EC6?style=flat-square"/>
 - <b>[MäCAN _MP5x16_][mp5x16]</b><br>
     <img src="https://img.shields.io/badge/Hardware-V1.0-FE7D37?style=flat-square"/>
-    <img src="https://img.shields.io/badge/Software-V1.0-FE7D37?style=flat-square"/>
+    <img src="https://img.shields.io/badge/Software-V1.2-FE7D37?style=flat-square"/>
 - <b>[MäCAN _Dx32_][dx32]</b><br>
     <img src="https://img.shields.io/badge/Hardware-V1.1-FE7D37?style=flat-square"/>
 ## Changelog
+
+### [2020-12-26.2]
+#### Änderungen:
+- [Bootloader][bootloader] + [MP5x16][mp5x16] | Anpassung an die Compiler-Flags für die CPU-Frequenz, da Delays nicht richtig funktioniert haben.
+- [MP5x16][mp5x16] | Kleinere Änderungen, mit denen bisherige Compiler-Warnungen behandelt wurden.
 
 ### [2020-12-26.1]
 #### Änderungen:

@@ -8,11 +8,10 @@
  * ----------------------------------------------------------------------------
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
- * [2020-08-27.1]
+ * [2020-12-26.2]
  */
 
 #include "mcp2515_basic.h"
-
 
 /************************************************************************/
 /* SPI                                                                  */
@@ -54,21 +53,18 @@ uint8_t spi_putc(uint8_t data) {
 /* Basic */
 
 void mcp1525_write_register(uint8_t adress, uint8_t data) {
-	//PORTCS &= ~(1 << PCS);
 	set_low(CS);
 	
 	spi_putc(SPI_WRITE);
 	spi_putc(adress);
 	spi_putc(data);
 	
-	//PORTCS |= (1 << PCS);
 	set_high(CS);
 }
 
 uint8_t mcp2515_read_register(uint8_t adress) {
 	uint8_t data;
 	
-	//PORTCS &= ~(1 << PCS);
 	set_low(CS);
 	
 	spi_putc(SPI_READ);
@@ -76,7 +72,6 @@ uint8_t mcp2515_read_register(uint8_t adress) {
 	
 	data = spi_putc(0xff);
 	
-	//PORTCS |= (1 << PCS);
 	set_high(CS);
 	
 	return data;
@@ -113,10 +108,10 @@ void mcp2515_init(void) {
 	
 	set_low(CS);
 	spi_putc(SPI_RESET);
-	_delay_ms(1);
+	_delay_us(100);
 	set_high(CS);
 	
-	_delay_ms(10);
+	_delay_us(1000);
 	
 	mcp1525_write_register(CNF1, 0x41);
 	mcp1525_write_register(CNF2, 0xf1);
@@ -169,7 +164,7 @@ void sendCanFrame(canFrame *frame) {
 	set_high(CS);
 	
 	
-	_delay_ms(10);
+	_delay_us(1000);
 }
 
 uint8_t getCanFrame(canFrame *frame) {
