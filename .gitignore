@@ -5,6 +5,3 @@
 *.s#*
 **/docs
 **/CAMoutputs
-**/Bootloader_Backup
-lufa-100807
-**/MäCAN_Dx32_USB
