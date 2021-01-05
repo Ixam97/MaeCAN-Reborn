@@ -3,13 +3,26 @@
 Die zweite Generaton der MäCAN-Komponenten für den [Märklin CAN-Bus][candoku]
 
 - <b>[MäCAN _Bootloader_][bootloader]</b><br>
-    <img src="https://img.shields.io/badge/Software-V1.3-007EC6?style=flat-square"/>
+    <img src="https://img.shields.io/badge/Software-V1.4-007EC6?style=flat-square"/>
 - <b>[MäCAN _MP5x16_][mp5x16]</b><br>
     <img src="https://img.shields.io/badge/Hardware-V1.0-FE7D37?style=flat-square"/>
-    <img src="https://img.shields.io/badge/Software-V1.2-FE7D37?style=flat-square"/>
+    <img src="https://img.shields.io/badge/Software-V1.3-FE7D37?style=flat-square"/>
 - <b>[MäCAN _Dx32_][dx32]</b><br>
     <img src="https://img.shields.io/badge/Hardware-V1.1-FE7D37?style=flat-square"/>
+    <img src="https://img.shields.io/badge/Software-V0.1-FE7D37?style=flat-square"/>
 ## Changelog
+
+### [2021-01-05.1]
+#### Änderungen:
+- Allgemein | Die Firmware aller Koponenten sowie des Bootloaders wurden in einer Atmel Studio-Solution zusammen geführt, um auf gemeinsame Dateien zugreifen zu können.
+- Allgemein | Vereinheitlichung von Ordner- und Dateinamen ohne Umlaute.
+- Allgemein | Nicht benötigte defines in mcan.h entfernt und für den ATmega1280 hinzugefügt.
+- [MP5x16][mp5x16] | Die Heartbeat-LED hat einen Fade-Effekt erhalten.
+- [Bootloader][bootloader] | Unterstützung für den Dx32 mit ATmega1280.
+- [Dx32][dx32] | Leitungsbenennung für zwei Rückmelde-LEDs an die Portbenennung angepasst.
+
+#### Hinzugefügt:
+- [Dx32][dx32] | Erste Testsoftware mit einem Lauflicht und Helligkeitssteuerung für die Rückmelde-LEDs.
 
 ### [2020-12-26.2]
 #### Änderungen:
