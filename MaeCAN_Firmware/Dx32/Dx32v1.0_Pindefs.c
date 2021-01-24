@@ -9,8 +9,8 @@
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
  * MaeCAN Dx32
- * V 1.0
- * []
+ * V 0.2
+ * [2021-01-24.1]
  */
 
 #include "Dx32v1.0_Pindefs.h"
@@ -39,6 +39,14 @@ uint8_t readPin(ioPin _pin) {
 	}
 }
 
+uint8_t reverseNibble(uint8_t _nibble) {
+	return reverse_lookup[_nibble & 0b00001111];
+}
+
+uint8_t reverseByte(uint8_t _byte) {
+	return (reverse_lookup[_byte & 0b00001111] << 4) | reverse_lookup[_byte >> 4];
+}
+
 void initPins() {
 	
 	statusPin.port = &PORTD;
@@ -48,7 +56,7 @@ void initPins() {
 	intPin.port = &PORTD;
 	intPin.ddr = &DDRD;
 	intPin.pin = 2;
-	
+	/*
 	t_led[0].port = &PORTA;
 	t_led[0].ddr = &DDRA;
 	t_led[0].in = &PINA;
@@ -189,7 +197,7 @@ void initPins() {
 		setHigh(t_led[i]);
 		setOutput(t_led[i]);
 	}
-	
+	*/
 	
 	for (uint8_t i = 0; i < 4; i++) {
 		dip_switch[i].port = &PORTD;
@@ -203,4 +211,69 @@ void initPins() {
 	
 	setOutput(statusPin);
 	
+	PORTA = 0b11111111; // T1 - T8
+	PORTJ = 0b11111111;
+	
+	DDRA = 0b11110000;
+	DDRJ = 0b00001111;
+	
+	PORTC = 0b11111111; // T9 - T16
+	PORTL = 0b11111111;
+	
+	DDRC = 0b00001111;
+	DDRL = 0b11110000;
+	
+	PORTH = 0b11111111; // T17 - T24
+	PORTE |= (0b11111100);
+	PORTB |= (0b11000000);
+	
+	DDRH = 0b00001111;
+	DDRE |= 0b00001100;
+	DDRB |= 0b11000000;
+	DDRE &= ~0b11110000;
+	
+	PORTF = 0b11111111; // T25 - T32
+	PORTK = 0b11111111;
+	
+	DDRF = 0b00001111;
+	DDRK = 0b00001111;
+}
+
+void readTracks(void) {
+	
+	TRKA = ((PINA & 0b00001111) + (PINJ & 0b11110000));
+	TRKB = ((PINC >> 4) + (reverseNibble(PINL) << 4));
+	TRKC = (reverseNibble(PINH >> 4) + (PINE & 0b11110000));
+	TRKD = (reverseNibble(PINF >> 4) + (PINK & 0b11110000));
+}
+
+void setLEDs(void) {
+	
+	// T1 - T8
+	PORTA &= ~(0b11110000 & (LEDA << 4));
+	PORTJ &= ~(0b00001111 & reverseNibble(LEDA >> 4));
+	
+	// T9 - T16
+	PORTC &= ~(0b00001111 & reverseNibble(LEDB));
+	PORTL &= ~(0b11110000 & (reverseNibble(LEDB >> 4) << 4));
+	
+	PORTH &= ~(0b00001111 & reverseNibble(LEDC));
+	PORTE &= ~(0b00001100 & reverseNibble(LEDC >> 4));
+	PORTB &= ~(0b11000000 & LEDC);
+	
+	PORTF &= ~(0b00001111 & LEDD);
+	PORTK &= ~(0b00001111 & (LEDD >> 4));
+	
+}
+
+void resetLEDs(void) {
+	PORTA |= 0b11110000;
+	PORTJ |= 0b00001111;
+	PORTC |= 0b00001111;
+	PORTL |= 0b11110000;
+	PORTH |= 0b00001111;
+	PORTE |= 0b00001100;
+	PORTB |= 0b11000000;
+	PORTF |= 0b00001111;
+	PORTK |= 0b00001111;
 }

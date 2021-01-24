@@ -8,7 +8,7 @@
  * ----------------------------------------------------------------------------
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
- * [2021-01-05.1]
+ * [2021-01-24.1]
  */
 
 #include "mcan.h"
@@ -202,8 +202,8 @@ void sendConfigInfoSlider(uint32_t uid, uint16_t hash, uint8_t channel, uint16_t
 		else string_len++;
 	}
 	
-	if ((string_len % 8) > 0) needed_frames = (string_len / 8) + 1;
-	else needed_frames = string_len / 8;
+	if (((string_len + 1) % 8) > 0) needed_frames = ((string_len + 1) / 8) + 1;
+	else needed_frames = (string_len + 1) / 8;
 	
 	for(int i = 0; i < needed_frames; i++){
 		for(int j = 0; j < 8; j++){

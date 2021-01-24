@@ -9,8 +9,8 @@
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
  * MaeCAN Dx32
- * V 0.2
- * [2021-01-24.1]
+ * V 0.1
+ * [2021-01-05.1]
  */
 
 /*  SERIAL_INTERFACE
@@ -65,36 +65,29 @@ uint8_t new_uart_frame = 0;
 uint8_t reset_request;					// 1 if software reset is requested, else 0
 
 uint32_t heartbeat_millis;				// Time counter for status LED
-uint32_t last_heartbeat_millis;
+uint32_t test_millis;					// Running Lights Test
 
 uint8_t timeout_millis;
 uint8_t frame_counter;
 uint8_t byte_buffer;
 uint8_t uart_to_can_buffer[13];
 
+uint8_t test_index;
+
+uint8_t t_led_state[32];
 uint8_t t_led_brightness;
+uint8_t t_led_speed = 100;
 
 uint8_t s_led_state;
 uint8_t s_led_brightness = 0;
-uint8_t s_led_brightness_set = 0;
+uint8_t s_led_brightness_set = 127;
 uint8_t s_led_rising = 1;
 
 uint8_t duty_cycle_counter;
 uint8_t last_duty_cycle_counter;
 uint8_t new_duty_cycle;
 
-uint8_t trk_state_actual[4];							// actual electric occupation state
-uint8_t trk_state_logic[4] = {0xff, 0xff, 0xff, 0xff};	// logic occupation state
-uint8_t trk_state_last[4];								// last logic occupation state
-uint16_t trk_timeout[4][8];								// timeout counters
-uint8_t trk_timeout_flag[4];							// timeout counter flags, high bit means count up
-uint16_t trk_timeout_millis = 1500;						// timeout time in milliseconds
-uint8_t trk_sense_flag = 0xff;							// high bit indicates missing track power, one bit per four ports
-uint8_t trk_sense_mask[4];								// masking ports to be handled as sense port (no timeout, change when power is off)
-uint8_t trk_sense_ports = 4; // 0,1,2,4,8				// number of sense ports
-uint8_t trk_LEDs[4];									// LED state to be set
-uint8_t trk_blinker;									// blink value provider
-uint16_t trk_blinker_millis;							// blink counter
+uint8_t last_TRKA, last_TRKB, last_TRKC, last_TRKD;
 
 uint8_t current_input;
 uint8_t last_input;
@@ -111,7 +104,6 @@ uint8_t compareUID(uint8_t data[8], uint32_t _uid) {
 		return 0;
 	}
 }
-
 
 //
 // Status LED blinking pattern.
@@ -132,35 +124,15 @@ void heartbeat() {
 	} else if (heartbeat_millis >= 600) {
 		//setHigh(statusPin);
 		s_led_rising = 1;
-	}
-	
-	if (trk_blinker_millis >= 500) {
-		trk_blinker = 0;
-		trk_blinker_millis = 0;
-	} else if (trk_blinker_millis >= 250) {
-		trk_blinker = 1;
-	}
-	
-	if (heartbeat_millis != last_heartbeat_millis) {
-		last_heartbeat_millis = heartbeat_millis;
-		
-		for (uint8_t i = 0; i < 4; i++) {
-			for (uint8_t j = 0; j < 8; j++) {
-				// Track occupation timeout
-				trk_timeout[i][j] += (trk_timeout_flag[i] >> j) & 0b1;
-			}
-		}
-		
-		if (s_led_rising == 1 && s_led_brightness_set <= (0xff - 3)) {
-			s_led_brightness_set += 3;
-			s_led_brightness = (uint8_t) pgm_read_byte (&ledLookupTable[s_led_brightness_set]);
-		} else if (s_led_rising == 0 && s_led_brightness_set >= 3) {
-			s_led_brightness_set -= 3;
-			s_led_brightness = (uint8_t) pgm_read_byte (&ledLookupTable[s_led_brightness_set]);
-		}
-		
 	}	
 	
+}
+
+//
+// Debouncing inputs
+//
+void debounce() {
+
 }
 
 //
@@ -189,33 +161,22 @@ void handleCanFrame(canFrame frame_in) {
 			// Ping
 			if (frame_in.resp == 0) {
 				sendPingFrame(uid, hash, VERSION, TYPE);
+				break;
 			}
-			break;
-		}
-		case CMD_S88_EVENT : {
-			// S88 querry
-			if (frame_in.resp == 0 && frame_in.dlc == 4) {
-				uint32_t s88_id = ((uint32_t)frame_in.data[0] << 24) + ((uint32_t)frame_in.data[1] << 16) + ((uint32_t)frame_in.data[2] << 8) + ((uint32_t)frame_in.data[3]);
-				if (s88_id == 0) {
-					for (uint8_t i = 0; i < 32; i++) {
-						sendS88Event(i + 1, hash, (trk_state_logic[i / 8] >> (i % 8)) & 0b1, (trk_state_last[i / 8] >> (i % 8)) & 0b1);
-					}
-				} else if (s88_id <= 32) {
-					sendS88Event(s88_id, hash, (trk_state_logic[(s88_id - 1) / 8] >> ((s88_id - 1) % 8)) & 0b1, (trk_state_last[(s88_id - 1) / 8] >> ((s88_id - 1) % 8)) & 0b1);
-				}
-			}
-			break;
 		}
 		case CMD_CONFIG : {
 			// Config data
 			if (frame_in.resp == 0 && compareUID(frame_in.data, uid) == 1) {
 				switch (frame_in.data[4]) {
 					case 0 : {
-						sendDeviceInfo(uid, hash, id, 0, 1, ITEM, NAME);
+						sendDeviceInfo(uid, hash, id, 0, 2, ITEM, NAME);
 						break;
 					}
 					case 1 : {
 						sendConfigInfoSlider(uid, hash, 1, 0, 0xff, t_led_brightness, "Helligkeit_0_255");
+					}
+					case 2 : {
+						sendConfigInfoSlider(uid, hash, 2, 0, 0xff, t_led_speed, "Geschwindigkeit_0_255");
 					}
 					default : {
 						break;
@@ -230,6 +191,8 @@ void handleCanFrame(canFrame frame_in) {
 			if (frame_in.resp == 0 && compareUID(frame_in.data, uid) == 1 && frame_in.data[4] == SYS_STAT) {
 				if (frame_in.data[5] == 1) {
 					t_led_brightness = ledLookupTable[frame_in.data[7]];
+					} else if (frame_in.data[5] == 2) {
+					t_led_speed = frame_in.data[7] ^ 0xff;
 				}
 				sendConfigConfirm(uid, hash, frame_in.data[5]);
 			}
@@ -296,119 +259,25 @@ int main(void)
     while (1) 
     {
 		
-		heartbeat();	
-		
-		// Reading actual Track Values:
+		//heartbeat();		
 		readTracks();
-		trk_state_actual[0] = TRKA;
-		trk_state_actual[1] = TRKB;
-		trk_state_actual[2] = TRKC;
-		trk_state_actual[3] = TRKD;
 		
-		// Generate sense flags and masks
-		switch (trk_sense_ports) {
-			case 8: {
-				trk_sense_flag = (TRKA & 0b00000001) + ((TRKA >> 6) & 0b00000010) + ((TRKB << 2) & 0b00000100) + ((TRKB >> 4) & 0b00001000) + ((TRKC << 4) & 0b00010000) + ((TRKC >> 2) & 0b00100000) + ((TRKD << 6) & 0b01000000) + (TRKD & 0b10000000);
-				trk_sense_mask[0] = 0b10000001;
-				trk_sense_mask[1] = 0b10000001;
-				trk_sense_mask[2] = 0b10000001;
-				trk_sense_mask[3] = 0b10000001;
-				break;
-			}
-			case 4: {
-				trk_sense_flag = (TRKA & 0b00000001) + ((TRKA << 1) & 0b00000010) + ((TRKB << 2) & 0b00000100) + ((TRKB << 3) & 0b00001000) + ((TRKC << 4) & 0b00010000) + ((TRKC << 5) & 0b00100000) + ((TRKD << 6) & 0b01000000) + ((TRKD << 7) & 0b10000000);
-				trk_sense_mask[0] = 0b00000001;
-				trk_sense_mask[1] = 0b00000001;
-				trk_sense_mask[2] = 0b00000001;
-				trk_sense_mask[3] = 0b00000001;
-				break;
-			}
-			case 2: {
-				trk_sense_flag = (TRKA & 0b00000001) + ((TRKA << 1) & 0b00000010) + ((TRKA << 2) & 0b00000100) + ((TRKA << 3) & 0b00001000) + ((TRKC << 4) & 0b00010000) + ((TRKC << 5) & 0b00100000) + ((TRKC << 6) & 0b01000000) + ((TRKC << 7) & 0b10000000);
-				trk_sense_mask[0] = 0b00000001;
-				trk_sense_mask[1] = 0b00000000;
-				trk_sense_mask[2] = 0b00000001;
-				trk_sense_mask[3] = 0b00000000;
-				break;
-			}
-			case 1: {
-				trk_sense_flag = (TRKA & 0b00000001) + ((TRKA << 1) & 0b00000010) + ((TRKA << 2) & 0b00000100) + ((TRKA << 3) & 0b00001000) + ((TRKA << 4) & 0b00010000) + ((TRKA << 5) & 0b00100000) + ((TRKA << 6) & 0b01000000) + ((TRKA << 7) & 0b10000000);
-				trk_sense_mask[0] = 0b00000001;
-				trk_sense_mask[1] = 0b00000000;
-				trk_sense_mask[2] = 0b00000000;
-				trk_sense_mask[3] = 0b00000000;
-				break;
-			}
-			default: {
-				trk_sense_flag = 0;
-				trk_sense_mask[0] = 0b00000000;
-				trk_sense_mask[1] = 0b00000000;
-				trk_sense_mask[2] = 0b00000000;
-				trk_sense_mask[3] = 0b00000000;
-				break;
-			}
+		if (TRKA != last_TRKA || TRKB != last_TRKB || TRKC != last_TRKC || TRKD != last_TRKD) {
+			LEDA = TRKA;
+			LEDB = TRKB;
+			LEDC = TRKC;
+			LEDD = TRKD;
+			last_TRKA = TRKA;
+			last_TRKB = TRKB;
+			last_TRKC = TRKC;
+			last_TRKD = TRKD;
 		}
 		
-		// Update logic occupation states
-		for (uint8_t i = 0; i < 4; i++) {
-			for (uint8_t j = 0; j < 8; j++) {
-				
-				// Get bit values for specific port
-				uint8_t trk_bit_actual = (trk_state_actual[i] >> j) & 0b1;
-				uint8_t trk_bit_logic = (trk_state_logic[i] >> j) & 0b1;
-				uint8_t trk_bit_sense = (~trk_sense_flag >> ((i * 2) + (j / 4))) & 0b1;
-				uint8_t trk_bit_sense_mask = (trk_sense_mask[i] >> j) & 0b1;
-				
-				
-				if (trk_bit_actual < trk_bit_logic) {
-					// Change logic state on occupation
-					trk_state_logic[i] &= ~(1 << j);
-					trk_state_last[i] |= (1 << j);
-					sendS88Event((8 * i + j) + 1, hash, (~trk_bit_logic & 0b1), (~trk_bit_actual & 0b1));
-				} else if (trk_bit_actual == 0) {
-					// Reset timeout when occupation returns
-					trk_timeout_flag[i] &= ~(1 << j);
-					trk_timeout[i][j] = 0;
-				} else if (trk_bit_logic < trk_bit_actual && (trk_timeout[i][j] >= trk_timeout_millis || trk_bit_sense_mask == 1)) {
-					// Wait for timeout before resetting occupation
-					trk_state_logic[i] |= (1 << j);
-					trk_state_last[i] &= ~(1 << j);
-					sendS88Event((8 * i + j) + 1, hash, (~trk_bit_logic & 0b1), (~trk_bit_actual & 0b1));
-					trk_timeout_flag[i] &= ~(1 << j);
-					trk_timeout[i][j] = 0;
-				} else if (trk_bit_logic < trk_bit_actual && trk_timeout[i][j] == 0 && ((trk_bit_sense == 1) || (trk_bit_sense_mask == 1))) {
-					// start timeout
-					trk_timeout_flag[i] |= (1 << j);
-				} else if (trk_bit_sense == 0 && trk_timeout[i][j] > 0) {
-					// Reset timeout when no track power
-					trk_timeout_flag[i] &= ~(1 << j);
-					trk_timeout[i][j] = 0;
-				}
-				
-				if (trk_bit_sense == 0) {
-					// Blink LEDs if no track power sensed
-					trk_LEDs[i] = (trk_LEDs[i] & ~(1 << j)) + ((~(~(trk_bit_logic & 0b1) & trk_blinker) & 0b1) << j);
-				} else if (trk_LEDs[i] != trk_state_logic[i]){
-					trk_LEDs[i] = (trk_LEDs[i] & ~(1 << j)) + (trk_bit_logic << j);
-				}
-			}
-		}
+		/* Handle new CAN frame */
 		
-		// update LEDs depending on logic states
-		LEDA = ~trk_LEDs[0];
-		LEDB = ~trk_LEDs[1];
-		LEDC = ~trk_LEDs[2];
-		LEDD = ~trk_LEDs[3];
-		
-		
-		
-		
-		//
-		// Handle new CAN frame */
-		//
 #ifdef SERIAL_INTERFACE
 		// Read serial interface for new frame, send it on CAN and
-		// convert to CAN-Frame format to handle in device
+		// convert to CAN-Frame format to hande in device
 		uint16_t uart_in = uart_getc();
 		
 		if (uart_in >> 8 == 0 && timeout_millis <= SERIAL_TIMEOUT){
@@ -468,9 +337,7 @@ int main(void)
 		if (reset_request == 1) {
 			
 			reset_request = 0;
-			resetLEDs();
 			cli();
-			resetLEDs();
 			wdt_enable(WDTO_15MS);
 			while(1);
 		}
@@ -490,10 +357,21 @@ ISR(INT2_vect) {
 ISR(TIMER0_COMPA_vect) {
 	// Count up time counters.
 	heartbeat_millis++;
-	trk_blinker_millis++;
 	if (frame_counter > 0) {
 		timeout_millis++;
 	}
+	//test_millis++;
+	
+	// Adjust staus LED fade brightness.
+	if (s_led_rising == 1 && s_led_brightness_set < 0xff - 3) {
+		s_led_brightness_set += 3;
+		s_led_brightness = ledLookupTable[s_led_brightness_set];
+	} else if (s_led_rising == 0 && s_led_brightness_set > 3) {
+		s_led_brightness_set -= 3;
+		s_led_brightness = ledLookupTable[s_led_brightness_set];
+	}
+	
+	heartbeat();
 	
 }
 

@@ -9,8 +9,13 @@ Die zweite Generaton der MäCAN-Komponenten für den [Märklin CAN-Bus][candoku]
     <img src="https://img.shields.io/badge/Software-V1.3-FE7D37?style=flat-square"/>
 - <b>[MäCAN _Dx32_][dx32]</b><br>
     <img src="https://img.shields.io/badge/Hardware-V1.1-FE7D37?style=flat-square"/>
-    <img src="https://img.shields.io/badge/Software-V0.1-FE7D37?style=flat-square"/>
+    <img src="https://img.shields.io/badge/Software-V0.2-FE7D37?style=flat-square"/>
 ## Changelog
+
+### [2021-01-24.1]
+#### Änderungen:
+- Allgemein | Ein Fehler in der Übertragung von Konfigurationskanälen in der mcan.c wurde behoben.
+- [Dx32][dx32] | Basisfunktionalität wurde hergestellt (Belegterkennung mit Timeout und Gleisspannungserkennung).
 
 ### [2021-01-05.1]
 #### Änderungen:

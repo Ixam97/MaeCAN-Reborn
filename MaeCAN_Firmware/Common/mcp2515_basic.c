@@ -13,6 +13,10 @@
 
 #include "mcp2515_basic.h"
 
+#ifdef SERIAL_INTERFACE
+	#include "uart.h"
+#endif
+
 /************************************************************************/
 /* SPI                                                                  */
 /************************************************************************/
@@ -165,6 +169,21 @@ void sendCanFrame(canFrame *frame) {
 	
 	
 	_delay_us(1000);
+	
+	#ifdef SERIAL_INTERFACE
+		// Transmit Frame over serial interface if supported by device
+		
+		uart_putc((uint8_t)(txID >> 24));
+		uart_putc((uint8_t)(txID >> 16));
+		uart_putc((uint8_t)(txID >> 8));
+		uart_putc((uint8_t)txID);
+		uart_putc(frame->dlc);
+		for (uint8_t i = 0; i < 8; i++) {
+			uart_putc(frame->data[i]);
+		}
+		
+	#endif
+	
 }
 
 uint8_t getCanFrame(canFrame *frame) {
