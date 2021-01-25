@@ -9,8 +9,8 @@
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
  * MaeCAN Dx32
- * V 0.2
- * [2021-01-24.1]
+ * V 0.3
+ * [2021-01-25.1]
  */
 
 /*  SERIAL_INTERFACE
@@ -31,7 +31,7 @@
 #define VERSION 0x0001
 #define TYPE 0x0053
 
-#define TLEDBRIGHTNESS 63
+//#define TLEDBRIGHTNESS 63
 #define BAUD_RATE 57200
 #define SERIAL_TIMEOUT 10
 
@@ -73,6 +73,7 @@ uint8_t byte_buffer;
 uint8_t uart_to_can_buffer[13];
 
 uint8_t t_led_brightness;
+uint8_t t_led_brightness_set = 63;
 
 uint8_t s_led_state;
 uint8_t s_led_brightness = 0;
@@ -215,7 +216,7 @@ void handleCanFrame(canFrame frame_in) {
 						break;
 					}
 					case 1 : {
-						sendConfigInfoSlider(uid, hash, 1, 0, 0xff, t_led_brightness, "Helligkeit_0_255");
+						sendConfigInfoSlider(uid, hash, 1, 0, 0xff, t_led_brightness_set, "Helligkeit_0_255");
 					}
 					default : {
 						break;
@@ -228,10 +229,15 @@ void handleCanFrame(canFrame frame_in) {
 		case SYS_CMD : {
 			// Write config data
 			if (frame_in.resp == 0 && compareUID(frame_in.data, uid) == 1 && frame_in.data[4] == SYS_STAT) {
-				if (frame_in.data[5] == 1) {
-					t_led_brightness = ledLookupTable[frame_in.data[7]];
+				if (frame_in.dlc == 8) {
+					if (frame_in.data[5] == 1) {
+						t_led_brightness_set = frame_in.data[7];
+						t_led_brightness = ledLookupTable[t_led_brightness_set];
+					}
+					sendConfigConfirm(uid, hash, frame_in.data[5]);
+				} else if (frame_in.dlc == 6 && frame_in.data[5] == 1) {
+					sendStatus(uid, hash, 1, t_led_brightness_set);
 				}
-				sendConfigConfirm(uid, hash, frame_in.data[5]);
 			}
 		}
 		default : break;
@@ -247,7 +253,7 @@ int main(void)
 	/*  INIT                                                                */
 	/************************************************************************/
 	
-	t_led_brightness = ledLookupTable[TLEDBRIGHTNESS];
+	t_led_brightness = ledLookupTable[t_led_brightness_set];
 	
 	initPins();
 	

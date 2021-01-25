@@ -8,7 +8,7 @@
  * ----------------------------------------------------------------------------
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
- * [2021-01-24.1]
+ * [2021-01-25.1]
  */
 
 #include "mcan.h"
@@ -286,4 +286,24 @@ void sendACCEvent(uint32_t accUID, uint16_t hash, uint8_t value, uint8_t power) 
 	frame.data[7] = 0;
 	
 	sendCanFrame(&frame);
+}
+
+void sendStatus(uint32_t uid, uint16_t hash, uint8_t channel, uint16_t value) {
+	canFrame frame;
+	
+	frame.hash = hash;
+	frame.cmd = SYS_CMD;
+	frame.resp = 1;
+	frame.dlc = 8;
+	frame.data[0] = (uint8_t) (uid >> 24);
+	frame.data[1] = (uint8_t) (uid >> 16);
+	frame.data[2] = (uint8_t) (uid >> 8);
+	frame.data[3] = (uint8_t) uid;
+	frame.data[4] = SYS_STAT;
+	frame.data[5] = channel;
+	frame.data[6] = (uint8_t) (value >> 8);
+	frame.data[7] = (uint8_t) value;
+	
+	sendCanFrame(&frame);
+	
 }

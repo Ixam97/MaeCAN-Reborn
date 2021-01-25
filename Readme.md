@@ -8,9 +8,14 @@ Die zweite Generaton der MäCAN-Komponenten für den [Märklin CAN-Bus][candoku]
     <img src="https://img.shields.io/badge/Hardware-V1.0-FE7D37?style=flat-square"/>
     <img src="https://img.shields.io/badge/Software-V1.3-FE7D37?style=flat-square"/>
 - <b>[MäCAN _Dx32_][dx32]</b><br>
-    <img src="https://img.shields.io/badge/Hardware-V1.1-FE7D37?style=flat-square"/>
-    <img src="https://img.shields.io/badge/Software-V0.2-FE7D37?style=flat-square"/>
+    <img src="https://img.shields.io/badge/Hardware-V1.1-FF4D47?style=flat-square"/>
+    <img src="https://img.shields.io/badge/Software-V0.3-FF4D47?style=flat-square"/>
 ## Changelog
+
+### [2020-01-25.1]
+#### Hinzugefügt:
+- Allgemein | Neue Funktion "sendStatus" in der mcan-Bibliothek zum senden von Statuskanalwerten.
+- [Dx32][dx32] | Konfigurationskanal-Werte können abgefragt werden.
 
 ### [2021-01-24.1]
 #### Änderungen:

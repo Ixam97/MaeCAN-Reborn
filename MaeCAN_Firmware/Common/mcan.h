@@ -8,7 +8,7 @@
  * ----------------------------------------------------------------------------
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
- * [2021-01-24.1]
+ * [2021-01-25.1]
  */
 
 #ifndef MCAN_H
@@ -47,5 +47,6 @@ void sendPingFrame(uint32_t uid, uint16_t hash, uint16_t version, uint16_t type)
 void sendConfigConfirm(uint32_t uid, uint16_t hash, uint8_t channel);
 void sendS88Event(uint32_t portID, uint16_t hash, uint8_t old_value, uint8_t new_value);
 void sendACCEvent(uint32_t accUID, uint16_t hash, uint8_t value, uint8_t power);
+void sendStatus(uint32_t uid, uint16_t hash, uint8_t channel, uint16_t value);
 
 #endif
