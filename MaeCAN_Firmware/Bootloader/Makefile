@@ -23,10 +23,11 @@ FORMAT = ihex
 TARGET = Bootloader
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = $(TARGET).c 		\
+SRC = $(TARGET).c 				\
 	  ../Common/mcan.c			\
 	  ../Common/mcp2515_basic.c	\
-	  ../Common/uart.c
+	  ../Common/uart.c 			\
+	  ../Common/slcan.c
 
 # List Assembler source files here.
 #     Make them always end in a capital .S.  Files ending in a lowercase .s
@@ -270,7 +271,8 @@ build_Dx32_1280_V1_0: MCU = atmega1280
 build_Dx32_1280_V1_0: F_CPU = 16000000
 build_Dx32_1280_V1_0: BOARD = Dx32_1280_V1_0
 build_Dx32_1280_V1_0: CDEFS += -DTYPE=0x53
-build_Dx32_1280_V1_0: LDFLAGS += -Wl,--section-start=.text=0x1f000
+build_Dx32_1280_V1_0: CDEFS += -DSLCAN
+build_Dx32_1280_V1_0: LDFLAGS += -Wl,--section-start=.text=0x1e000
 build_Dx32_1280_V1_0: compile_msg build clean_list
 
 Dx32_1280_V1_0: begin gccversion build_Dx32_1280_V1_0 end

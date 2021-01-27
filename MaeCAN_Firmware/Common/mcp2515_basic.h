@@ -8,14 +8,46 @@
  * ----------------------------------------------------------------------------
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
- * [2021-01-05.1]
+ * [2021-01-27.1]
  */
 
-//#define F_CPU 16000000UL
+/*  SLCAN
+ *
+ *	If "SLCAN" is defined, the USB-Port creates a virtual COM-Port. This interface 
+ *  transmits and receives CAN-Frames in the SLCAN format for extended Frames. The 
+ *  device handles serial frames the same way as CAN-Frames and sends it's responses 
+ *  on CAN and on Serial, while also converting the whole bus traffic.
+ *
+ * Tiiiiiiiildddddddddddddddd[CR]
+ * 'T':		defines start of frame
+ * i:		nibble of CAN ID
+ * l:		CAN DLC
+ * d:		nibble of CAN data
+ * [CR]:	Frame termination
+ *
+ */
 
 #include "mcp2515_defs.h"
+
+#ifdef SLCAN
+#include "slcan.h"
+#ifndef BAUD_RATE
+#define BAUD_RATE 500000
+#endif // BAUD RATE
+#endif // SLCAN
+
+
 #include <avr/io.h>
 #include <util/delay.h>
+#include <util/atomic.h>
+
+#ifndef MCP2515_BASIC_H
+#define MCP2515_BASIC_H
+
+#define CANBUFFERSIZE	16 // 2^n
+#define CANBUFFERMASK	(CANBUFFERSIZE - 1)
+#define BUFFER_FAIL		0
+#define BUFFER_SUCCESS	1
 
 // Pin-Deffinitionen:
 
@@ -46,6 +78,8 @@
 #define MCPINT_DDR	DDRD
 #define MCPINT_PIN	PIND
 
+#define INTCAN_vect INT0_vect
+
 #elif defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1280__)
 
 #define MISO		PB3
@@ -67,6 +101,13 @@
 #define CS_PORT		PORTB
 #define CS_DDR		DDRB
 #define CS_PIN		PINB
+
+#define MCPINT		PD2
+#define MCPINT_PORT	PORTD
+#define MCPINT_DDR	DDRD
+#define MCPINT_PIN	PIND
+
+#define INTCAN_vect INT2_vect
 
 #endif
 
@@ -112,6 +153,18 @@ uint8_t mcp2515_read_rx_status(void);
 
 void mcp2515_init(void);
 
+void sendCanFrameNoSLCAN(canFrame *frame);
+
 void sendCanFrame(canFrame *frame);
 
 uint8_t getCanFrame(canFrame *frame);
+
+uint8_t CanBufferIn(void);
+
+uint8_t CanBufferOut(canFrame *pFrame);
+
+uint8_t readCanFrame(canFrame *frame);
+
+ISR(INTCAN_vect);
+
+#endif // MCP2515_BASIC_H

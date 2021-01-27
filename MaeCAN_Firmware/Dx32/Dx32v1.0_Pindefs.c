@@ -15,6 +15,8 @@
 
 #include "Dx32v1.0_Pindefs.h"
 
+const uint8_t reverse_lookup[] PROGMEM = {0x0, 0x8, 0x4, 0xc, 0x2, 0xa, 0x6, 0xe, 0x1, 0x9, 0x5, 0xd, 0x3, 0xb, 0x7, 0xf};
+
 void setOutput(ioPin _pin) {
 	*_pin.ddr |= (1 << _pin.pin);
 }
@@ -40,11 +42,11 @@ uint8_t readPin(ioPin _pin) {
 }
 
 uint8_t reverseNibble(uint8_t _nibble) {
-	return reverse_lookup[_nibble & 0b00001111];
+	return (uint8_t)pgm_read_byte(&reverse_lookup[_nibble & 0b00001111]);
 }
 
 uint8_t reverseByte(uint8_t _byte) {
-	return (reverse_lookup[_byte & 0b00001111] << 4) | reverse_lookup[_byte >> 4];
+	return ((uint8_t)pgm_read_byte(&reverse_lookup[_byte & 0b00001111]) << 4) | (uint8_t)pgm_read_byte(&reverse_lookup[_byte >> 4]);
 }
 
 void initPins() {
@@ -52,10 +54,6 @@ void initPins() {
 	statusPin.port = &PORTD;
 	statusPin.ddr = &DDRD;
 	statusPin.pin = 3;
-	
-	intPin.port = &PORTD;
-	intPin.ddr = &DDRD;
-	intPin.pin = 2;
 	/*
 	t_led[0].port = &PORTA;
 	t_led[0].ddr = &DDRA;

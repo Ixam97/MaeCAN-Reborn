@@ -23,11 +23,12 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 #include <avr/wdt.h>
-
-static uint8_t reverse_lookup[] = {0x0, 0x8, 0x4, 0xc, 0x2, 0xa, 0x6, 0xe, 0x1, 0x9, 0x5, 0xd, 0x3, 0xb, 0x7, 0xf};
+#include <avr/pgmspace.h>
 	
 uint8_t TRKA, TRKB, TRKC, TRKD;
 uint8_t LEDA, LEDB, LEDC, LEDD;
+
+extern const uint8_t reverse_lookup[];
 
 typedef struct  
 {
@@ -39,8 +40,6 @@ typedef struct
 } ioPin;
 
 ioPin statusPin;
-
-ioPin intPin;
 
 ioPin dip_switch[4];
 

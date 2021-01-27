@@ -96,7 +96,8 @@
     <ListValues>
       <Value>DEBUG</Value>
       <Value>F_CPU=16000000UL</Value>
-      <Value>SERIAL_INTERFACE</Value>
+      <Value>SLCAN</Value>
+      <Value>NEWLINE</Value>
     </ListValues>
   </avrgcc.compiler.symbols.DefSymbols>
   <avrgcc.compiler.directories.IncludePaths>
@@ -105,7 +106,7 @@
       <Value>../../Common</Value>
     </ListValues>
   </avrgcc.compiler.directories.IncludePaths>
-  <avrgcc.compiler.optimization.level>Optimize more (-O2)</avrgcc.compiler.optimization.level>
+  <avrgcc.compiler.optimization.level>Optimize most (-O3)</avrgcc.compiler.optimization.level>
   <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
   <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
   <avrgcc.compiler.optimization.DebugLevel>Default (-g2)</avrgcc.compiler.optimization.DebugLevel>
@@ -145,6 +146,14 @@
     <Compile Include="..\Common\mcp2515_defs.h">
       <SubType>compile</SubType>
       <Link>Common\mcp2515_defs.h</Link>
+    </Compile>
+    <Compile Include="..\Common\slcan.c">
+      <SubType>compile</SubType>
+      <Link>Common\slcan.c</Link>
+    </Compile>
+    <Compile Include="..\Common\slcan.h">
+      <SubType>compile</SubType>
+      <Link>Common\slcan.h</Link>
     </Compile>
     <Compile Include="..\Common\uart.c">
       <SubType>compile</SubType>

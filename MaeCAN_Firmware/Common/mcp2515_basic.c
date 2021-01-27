@@ -8,14 +8,14 @@
  * ----------------------------------------------------------------------------
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
- * [2020-12-26.2]
+ * [2021-01-27.1]
  */
 
 #include "mcp2515_basic.h"
 
-#ifdef SERIAL_INTERFACE
-	#include "uart.h"
-#endif
+static canFrame can_buffer[CANBUFFERSIZE];
+static uint8_t can_buffer_read;
+static uint8_t can_buffer_write;
 
 /************************************************************************/
 /* SPI                                                                  */
@@ -137,53 +137,67 @@ void mcp2515_init(void) {
 	mcp1525_write_register(BFPCTRL, 0);
 	mcp1525_write_register(TXRTSCTRL, 0);
 	mcp2515_bit_modify(CANCTRL, 0xe0, 0);
+	
+	// Setup ext. interrupt on falling edge:
+	#if defined(__AVR_ATmega328P__)
+	DDRD &= ~(1 << 2);
+	PORTD |= (1 << 2);
+	EICRA |= (1 << ISC00);
+	EIMSK |= (1 << INT0);
+	#elif defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1280__)
+	EICRA |= (1 << ISC21);
+	EICRA &= ~(1 << ISC20);
+	EIMSK |= (1 << INT2);
+	DDRD &= ~(1 << 2);
+	PORTD |= (1 << 2);
+	#endif
+	
+	set_input(MCPINT);
+	pullup_on(MCPINT);
+	
+	#ifdef SLCAN
+	uart_init(UART_BAUD_SELECT(BAUD_RATE, F_CPU));
+	#endif
+	
+}
+
+void sendCanFrame(canFrame *frame) {
+	sendCanFrameNoSLCAN(frame);
+	
+	#ifdef SLCAN
+	sendSLCAN(frame);
+	#endif // SLCAN
 }
 
 
-void sendCanFrame(canFrame *frame) {
-	
+void sendCanFrameNoSLCAN(canFrame *frame) {
 	uint32_t txID = (((uint32_t)frame->cmd << 17) | ((uint32_t)frame->resp << 16) | frame->hash);
-	
-	set_low(CS);
-	spi_putc(SPI_WRITE_TX);
-	
-	// Set frame ID
-	spi_putc((uint8_t)((txID >> 16) >> 5));
-	spi_putc(((uint8_t)((txID >> 16) & 0x03)) | 0x08 | (uint8_t)(((txID >> 16) & 0x1c) << 3));
-	spi_putc((uint8_t)(txID >> 8));
-	spi_putc((uint8_t)(txID & 0xff));
-	
-	// Set frame dlc
-	spi_putc(frame->dlc);
-	
-	// Set frame data
-	for (uint8_t i = 0; i < 8; i++) {
-		spi_putc(frame->data[i]);
-	}
-	set_high(CS);
-	
-	//Send CAN Frame:
-	set_low(CS);
-	spi_putc(SPI_RTS | 0x01);
-	set_high(CS);
-	
-	
-	_delay_us(1000);
-	
-	#ifdef SERIAL_INTERFACE
-		// Transmit Frame over serial interface if supported by device
+	ATOMIC_BLOCK(ATOMIC_FORCEON) {
 		
-		uart_putc((uint8_t)(txID >> 24));
-		uart_putc((uint8_t)(txID >> 16));
-		uart_putc((uint8_t)(txID >> 8));
-		uart_putc((uint8_t)txID);
-		uart_putc(frame->dlc);
+		set_low(CS);
+		spi_putc(SPI_WRITE_TX);
+	
+		// Set frame ID
+		spi_putc((uint8_t)((txID >> 16) >> 5));
+		spi_putc(((uint8_t)((txID >> 16) & 0x03)) | 0x08 | (uint8_t)(((txID >> 16) & 0x1c) << 3));
+		spi_putc((uint8_t)(txID >> 8));
+		spi_putc((uint8_t)(txID & 0xff));
+	
+		// Set frame dlc
+		spi_putc(frame->dlc);
+	
+		// Set frame data
 		for (uint8_t i = 0; i < 8; i++) {
-			uart_putc(frame->data[i]);
+			spi_putc(frame->data[i]);
 		}
-		
-	#endif
+		set_high(CS);
 	
+		//Send CAN Frame:
+		set_low(CS);
+		spi_putc(SPI_RTS | 0x01);
+		set_high(CS);
+	}
+	_delay_us(1000);
 }
 
 uint8_t getCanFrame(canFrame *frame) {
@@ -225,10 +239,64 @@ uint8_t getCanFrame(canFrame *frame) {
 		} else {
 		mcp2515_bit_modify(CANINTF, (1 << RX1IF), 0);
 	}
-	
 	return (status & 0x07);
 }
 
 void mcp2515_reset_int(uint8_t status) {
 	
+}
+
+uint8_t CanBufferIn(void) {
+	uint8_t next = (can_buffer_write + 1) & CANBUFFERMASK;
+	
+	if (can_buffer_read == next)
+	return BUFFER_FAIL; // Full
+	
+	getCanFrame(&can_buffer[can_buffer_write & CANBUFFERMASK]);
+	
+	can_buffer_write = next;
+	
+	return BUFFER_SUCCESS;
+}
+
+uint8_t CanBufferOut(canFrame *pFrame) {
+	if (can_buffer_read == can_buffer_write)
+	return BUFFER_FAIL; // Empty
+	
+	ATOMIC_BLOCK(ATOMIC_FORCEON) {
+		*pFrame = can_buffer[can_buffer_read];
+	}
+		
+	can_buffer_read++;
+	if (can_buffer_read >= CANBUFFERSIZE)
+	can_buffer_read = 0;
+	
+	return BUFFER_SUCCESS;
+}
+
+uint8_t readCanFrame(canFrame *pFrame) {
+	
+	if (CanBufferOut(pFrame) == 1) {
+		
+		#ifdef SLCAN
+		sendSLCAN(pFrame);
+		#endif // SLCAN
+		
+		return 1;
+	}
+	
+	#if SLCAN
+	if (SLCANFrameReady() == 1) {
+		getSLCAN(pFrame);
+		sendCanFrameNoSLCAN(pFrame);
+		return 1;
+	}
+	#endif // SLCAN
+	
+	return 0;
+	
+}
+
+ISR(INTCAN_vect) {
+	CanBufferIn();
 }

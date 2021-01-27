@@ -9,8 +9,8 @@
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
  * MaeCAN MP5x16
- * V 1.0
- * [2020-08-27.1]
+ * V 1.4
+ * [2021-01-27.1]
  */
 
 
@@ -34,8 +34,6 @@ typedef struct
 } ioPin;
 
 ioPin statusPin;
-
-ioPin intPin;
 
 ioPin aux_1[16];
 ioPin aux_2[16];

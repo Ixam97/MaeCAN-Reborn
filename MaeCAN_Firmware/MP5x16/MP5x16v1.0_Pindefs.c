@@ -9,8 +9,8 @@
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
  * MaeCAN MP5x16
- * V 1.0
- * [2020-08-27.1]
+ * V 1.4
+ * [2021-01-27.1]
  */
 
 #include "MP5x16v1.0_Pindefs.h"
@@ -44,10 +44,6 @@ void initPins() {
 	statusPin.port = &PORTD;
 	statusPin.ddr = &DDRD;
 	statusPin.pin = 3;
-	
-	intPin.port = &PORTD;
-	intPin.ddr = &DDRD;
-	intPin.pin = 2;
 	
 	/* OUTPUT A*/
 	aux_1[0].port = &PORTA;

@@ -3,14 +3,21 @@
 Die zweite Generaton der MäCAN-Komponenten für den [Märklin CAN-Bus][candoku]
 
 - <b>[MäCAN _Bootloader_][bootloader]</b><br>
-    <img src="https://img.shields.io/badge/Software-V1.4-007EC6?style=flat-square"/>
+    <img src="https://img.shields.io/badge/Software-V1.5-007EC6?style=flat-square"/>
 - <b>[MäCAN _MP5x16_][mp5x16]</b><br>
     <img src="https://img.shields.io/badge/Hardware-V1.0-FE7D37?style=flat-square"/>
-    <img src="https://img.shields.io/badge/Software-V1.3-FE7D37?style=flat-square"/>
+    <img src="https://img.shields.io/badge/Software-V1.4-FE7D37?style=flat-square"/>
 - <b>[MäCAN _Dx32_][dx32]</b><br>
     <img src="https://img.shields.io/badge/Hardware-V1.1-FF4D47?style=flat-square"/>
-    <img src="https://img.shields.io/badge/Software-V0.3-FF4D47?style=flat-square"/>
+    <img src="https://img.shields.io/badge/Software-V0.4-FF4D47?style=flat-square"/>
 ## Changelog
+
+### [2020-01-27.1]
+#### Hinzugefügt:
+- Allgemein | In mcp2515_basic ist nun SLCAN integriert. Ist das Symbol "SLCAN" definiert wird die serielle Schnittstelle als CAN-Interface genutzt. Standard sind 500000 Baud. Hierfür wurde die Interruptbehandlung in mcp2515_basic integriert. Nach `init_mcp2515()` kann mit `readCanFrame()` ausgewertet werden. SLCAN und der physische CAN werden gleichwertig behandelt. Im selben Zuge wurde für CAN-Frames ein Ring-Buffer implementiert. SLCAN ist auch im Bootloader verfügbar.
+
+#### Änderungen:
+- [MP5x16][MP5x16] | Die Ansteuerung der Status-LED wurde an Dx32 angeglichen.
 
 ### [2020-01-25.1]
 #### Hinzugefügt:
