@@ -9,17 +9,25 @@ Die zweite Generaton der MäCAN-Komponenten für den [Märklin CAN-Bus][candoku]
     <img src="https://img.shields.io/badge/Software-V1.4-FE7D37?style=flat-square"/>
 - <b>[MäCAN _Dx32_][dx32]</b><br>
     <img src="https://img.shields.io/badge/Hardware-V1.1-FF4D47?style=flat-square"/>
-    <img src="https://img.shields.io/badge/Software-V0.4-FF4D47?style=flat-square"/>
+    <img src="https://img.shields.io/badge/Software-V1.0-FF4D47?style=flat-square"/>
 ## Changelog
 
-### [2020-01-27.1]
+### [2021-03-12.1]
+#### Änderungen:
+- Allgemein | MCAN beinhaltet nun mcp2515_basic und wurde aufgeräumt, um die Nutzung zu vereinfachen. Eine nutzung in Arduino-Sketches ist möglich.
+
+#### Hinzugefügt:
+- [Dx32][dx32] | Version 1.0, Konfiguration und EEPROM-Nutzung wurde vollständig integriert. 
+- [Dx32][dx32] | Der DIP-Schalter stellt folgende Funktionen bereit: 1: Bootloader-Modus (noch nicht im Bootloader integriert), 2: New Line bei SLCAN zum Debugging, 3: Silent-Mode reagiert nicht auf Ping-Anfragen
+
+### [2021-01-27.1]
 #### Hinzugefügt:
 - Allgemein | In mcp2515_basic ist nun SLCAN integriert. Ist das Symbol "SLCAN" definiert wird die serielle Schnittstelle als CAN-Interface genutzt. Standard sind 500000 Baud. Hierfür wurde die Interruptbehandlung in mcp2515_basic integriert. Nach `init_mcp2515()` kann mit `readCanFrame()` ausgewertet werden. SLCAN und der physische CAN werden gleichwertig behandelt. Im selben Zuge wurde für CAN-Frames ein Ring-Buffer implementiert. SLCAN ist auch im Bootloader verfügbar.
 
 #### Änderungen:
 - [MP5x16][MP5x16] | Die Ansteuerung der Status-LED wurde an Dx32 angeglichen.
 
-### [2020-01-25.1]
+### [2021-01-25.1]
 #### Hinzugefügt:
 - Allgemein | Neue Funktion "sendStatus" in der mcan-Bibliothek zum senden von Statuskanalwerten.
 - [Dx32][dx32] | Konfigurationskanal-Werte können abgefragt werden.

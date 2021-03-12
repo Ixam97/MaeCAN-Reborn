@@ -9,8 +9,8 @@
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
  * MaeCAN Dx32
- * V 0.2
- * [2021-01-24.1]
+ * V 1.0
+ * [2021-003-12.1]
  */
 
 
@@ -41,7 +41,7 @@ typedef struct
 
 ioPin statusPin;
 
-ioPin dip_switch[4];
+ioPin dip_switch[4]; 
 
 //ioPin t_led[32];
 

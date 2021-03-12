@@ -287,7 +287,7 @@ int main(void)
 					/* Write config data to EEPROM */
 					if (frame_in.resp == 0 && compareUID(frame_in.data, uid) == 1 && frame_in.data[4] == SYS_STAT) {
 						eeprom_update_word((void *)(frame_in.data[5] * 2), (frame_in.data[6] << 8) + frame_in.data[7]);
-						sendConfigConfirm(uid, hash, frame_in.data[5]);
+						sendConfigConfirm(uid, hash, frame_in.data[5], 1);
 					}
 				}
 				case CMD_SWITCH_ACC : {

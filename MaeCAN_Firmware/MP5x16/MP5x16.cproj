@@ -30,15 +30,15 @@
     <EraseKey />
     <AsfFrameworkConfig>
       <framework-data xmlns="">
-  <options />
-  <configurations />
-  <files />
-  <documentation help="" />
-  <offline-documentation help="" />
-  <dependencies>
-    <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.47.0" />
-  </dependencies>
-</framework-data>
+        <options />
+        <configurations />
+        <files />
+        <documentation help="" />
+        <offline-documentation help="" />
+        <dependencies>
+          <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.47.0" />
+        </dependencies>
+      </framework-data>
     </AsfFrameworkConfig>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
@@ -131,14 +131,6 @@
     <Compile Include="..\Common\mcan.h">
       <SubType>compile</SubType>
       <Link>Common\mcan.h</Link>
-    </Compile>
-    <Compile Include="..\Common\mcp2515_basic.c">
-      <SubType>compile</SubType>
-      <Link>Common\mcp2515_basic.c</Link>
-    </Compile>
-    <Compile Include="..\Common\mcp2515_basic.h">
-      <SubType>compile</SubType>
-      <Link>Common\mcp2515_basic.h</Link>
     </Compile>
     <Compile Include="..\Common\mcp2515_defs.h">
       <SubType>compile</SubType>

@@ -25,9 +25,7 @@ TARGET = Bootloader
 # List C source files here. (C dependencies are automatically generated.)
 SRC = $(TARGET).c 				\
 	  ../Common/mcan.c			\
-	  ../Common/mcp2515_basic.c	\
-	  ../Common/uart.c 			\
-	  ../Common/slcan.c
+	  ../Common/uart.c 			
 
 # List Assembler source files here.
 #     Make them always end in a capital .S.  Files ending in a lowercase .s

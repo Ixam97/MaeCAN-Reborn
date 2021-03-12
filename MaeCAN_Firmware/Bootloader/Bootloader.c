@@ -40,7 +40,7 @@
 //#define TYPE 0x52 /* MP5x16 (2560) */
 //#define TYPE 0x53 /* Dx32 (1280),(2560) */
 
-
+//#include <stdlib.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/boot.h>
@@ -48,7 +48,6 @@
 #include <avr/eeprom.h>
 #include <avr/wdt.h>
 #include <string.h>
-#include "../Common/mcp2515_basic.h"
 #include "../Common/mcan.h"
 
 #if TYPE == 0x51
@@ -144,7 +143,7 @@ void programPage (uint32_t page, uint8_t *buf)
 	boot_page_erase (page);
 	boot_spm_busy_wait ();      /* Wait until the memory is erased. */
 
-	for (i=0; i<SPM_PAGESIZE; i+=2)
+	for (i = 0; i < SPM_PAGESIZE; i += 2)
 	{
 		/* Set up little-endian word. */
 		uint16_t w = *buf++;
@@ -314,10 +313,3 @@ ISR(TIMER0_COMPA_vect) {
 	++millis;
 	++ledmillis;
 }
-/*
-ISR(INTVECT) {
-	// process CAN-frame
-	getCanFrame(&frame_in_buffer);
-	new_frame = 1;
-}
-*/
