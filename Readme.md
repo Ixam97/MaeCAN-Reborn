@@ -12,6 +12,10 @@ Die zweite Generaton der MäCAN-Komponenten für den [Märklin CAN-Bus][candoku]
     <img src="https://img.shields.io/badge/Software-V1.1-FF4D47?style=flat-square"/>
 ## Changelog
 
+### [2021-03-13.2]
+#### Hinzugefügt:
+- Allgemein | Fehlermeldung hinzugefügt, falls MCAN mit einem nicht unterstützten Controller verwendet wird.
+
 ### [2021-03-13.1]
 #### Änderungen:
 - Allgemein | Die Dokumentation in mcan.h wurde umfangreich erweitert.

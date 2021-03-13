@@ -8,7 +8,7 @@
  * ----------------------------------------------------------------------------
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
- * [2021-03-13.1]
+ * [2021-03-13.2]
  */
 
 /** 
@@ -123,6 +123,8 @@
 
 #define INTCAN_vect INT2_vect
 
+#else
+#error Selceted controller is not supportet by MCAN! Please contact the author for help: ixam97@ixam97.de
 #endif
 
 #ifndef IO_MAKROS
