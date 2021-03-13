@@ -3,14 +3,20 @@
 Die zweite Generaton der MäCAN-Komponenten für den [Märklin CAN-Bus][candoku]
 
 - <b>[MäCAN _Bootloader_][bootloader]</b><br>
-    <img src="https://img.shields.io/badge/Software-V1.5-007EC6?style=flat-square"/>
+    <img src="https://img.shields.io/badge/Software-V1.6-007EC6?style=flat-square"/>
 - <b>[MäCAN _MP5x16_][mp5x16]</b><br>
     <img src="https://img.shields.io/badge/Hardware-V1.0-FE7D37?style=flat-square"/>
-    <img src="https://img.shields.io/badge/Software-V1.4-FE7D37?style=flat-square"/>
+    <img src="https://img.shields.io/badge/Software-V1.5-FE7D37?style=flat-square"/>
 - <b>[MäCAN _Dx32_][dx32]</b><br>
     <img src="https://img.shields.io/badge/Hardware-V1.1-FF4D47?style=flat-square"/>
-    <img src="https://img.shields.io/badge/Software-V1.0-FF4D47?style=flat-square"/>
+    <img src="https://img.shields.io/badge/Software-V1.1-FF4D47?style=flat-square"/>
 ## Changelog
+
+### [2021-03-13.1]
+#### Änderungen:
+- Allgemein | Die Dokumentation in mcan.h wurde umfangreich erweitert.
+- Allgemein | Die Berechnung des Hash wird durch mcan_init() übernommen. Die vorgefertigten send-Funktionen benötigen keine UID und keinen Hash mehr als Parameter. Dx32 und MP5x16 wurden entsprechend angepasst.
+- Allgemein compareUID() ist jetzt Teil von MCAN.
 
 ### [2021-03-12.1]
 #### Änderungen:

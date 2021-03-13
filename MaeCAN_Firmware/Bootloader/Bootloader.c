@@ -9,8 +9,8 @@
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
  * MaeCAN Bootloader
- * V 1.5
- * [2021-01-05.1]
+ * V 1.6
+ * [2021-03-13.1]
  */
 
 /*
@@ -74,6 +74,8 @@
 	#define NAME "M\u00E4CAN 32-fach Gleisbelegtmelder"
 	#define ITEM "Dx32"
 	#define BASE_UID 0x4d430000
+#else
+	#error "No device type has been set!"
 #endif
 
 /* Deactivate Watchdog */
@@ -106,16 +108,6 @@ uint8_t frame_index_check;
 
 
 void (*start)(void) = 0x0000;	/* Sprung zum Programmstart */
-
-uint8_t compareUID(uint8_t data[8], uint32_t _uid) {
-	/* Checking received UID for relevance. */
-	
-	if ((data[0] == (uint8_t)(_uid >> 24)) && (data[1] == (uint8_t)(_uid >> 16)) && (data[2] == (uint8_t)(_uid >> 8)) && (data[3] == (uint8_t)_uid)) {
-		return 1;
-		} else {
-		return 0;
-	}
-}
 
 void startApp(void) {
 	unsigned char temp;
@@ -166,15 +158,15 @@ void programPage (uint32_t page, uint8_t *buf)
 int main(void)
 {
 	serial_nbr = (uint16_t)(boot_signature_byte_get(22) << 8) | boot_signature_byte_get(23);
-	can_uid = BASE_UID + serial_nbr;
-	hash = generateHash(can_uid);
+	//can_uid = BASE_UID + serial_nbr;
+	//hash = generateHash(can_uid);
 	
 	unsigned char temp = MCUCR;
 	MCUCR = temp | (1<<IVCE);
 	MCUCR = temp | (1<<IVSEL);
 		
 	/* init CAN */
-	mcp2515_init();
+	mcan_init(BASE_UID + serial_nbr);
 	
 	// Setup heartbeat timer:
 	TCCR0A |= (1 << WGM01); // Timer 0 clear time on compare match
@@ -185,12 +177,12 @@ int main(void)
 	
 	frame_out.cmd = 0x40;
 	frame_out.resp = 1;
-	frame_out.hash = hash;
+	frame_out.hash = mcan_hash;
 	frame_out.dlc = 6;
-	frame_out.data[0] = (can_uid >> 24);
-	frame_out.data[1] = (can_uid >> 16);
-	frame_out.data[2] = (can_uid >> 8);
-	frame_out.data[3] = can_uid;
+	frame_out.data[0] = (mcan_uid >> 24);
+	frame_out.data[1] = (mcan_uid >> 16);
+	frame_out.data[2] = (mcan_uid >> 8);
+	frame_out.data[3] = mcan_uid;
 	frame_out.data[6] = 0;
 	frame_out.data[7] = 0;
 
@@ -222,9 +214,9 @@ int main(void)
 		if (readCanFrame(&frame_in)) {
 			
 			if (frame_in.cmd == CMD_PING && frame_in.resp == 0) {
-				sendPingFrame(can_uid, hash, 0, TYPE);
+				sendPingFrame(0, TYPE);
 			} else if (frame_in.cmd == CMD_CONFIG && frame_in.resp == 0 && compareUID(frame_in.data, can_uid) && frame_in.data[4] == 0) {
-				sendDeviceInfo(can_uid, hash, serial_nbr, 0, 0, ITEM, NAME);
+				sendDeviceInfo(serial_nbr, 0, 0, ITEM, NAME);
 			} else if (frame_in.cmd == 0x40) {
 				if (updating == 0) {
 					// Bootloader in den Update-Modus versetzen, wenn Updater Ping-Antwort best�tigt:

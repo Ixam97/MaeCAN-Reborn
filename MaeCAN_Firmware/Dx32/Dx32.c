@@ -9,8 +9,8 @@
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
  * MaeCAN Dx32
- * V 1.0
- * [2021-03-12.1]
+ * V 1.1
+ * [2021-03-13.1]
  */
 
 /* 
@@ -41,7 +41,7 @@
 #define NAME "M\u00E4CAN 32-fach Gleisbelegtmelder"
 #define BASE_UID 0x4D430000
 #define ITEM "Dx32"
-#define VERSION 0x0100
+#define VERSION 0x0101
 #define TYPE 0x0053
 
 #include <stdlib.h>
@@ -78,8 +78,6 @@ const uint8_t ledLookupTable[] PROGMEM = {
 
 canFrame frame_in;
 
-uint32_t uid;
-uint16_t hash;
 uint16_t serial_nbr;
 uint16_t id;
 
@@ -129,17 +127,6 @@ uint16_t trk_blinker_millis;							// blink counter
 uint8_t current_input;
 uint8_t last_input;
 
-//
-// Compare UID inside frame data to another UID.
-//
-uint8_t compareUID(uint8_t data[8], uint32_t _uid) {
-
-	if ((data[0] == (uint8_t)(_uid >> 24)) && (data[1] == (uint8_t)(_uid >> 16)) && (data[2] == (uint8_t)(_uid >> 8)) && (data[3] == (uint8_t)_uid)) {
-		return 1;
-		} else {
-		return 0;
-	}
-}
 
 //
 // Status LED blinking pattern.
@@ -295,13 +282,13 @@ uint8_t updateStartAdr(uint16_t _value) {
 void reportInput(uint16_t _s88_bus_id, uint16_t _s88_port_id) {
 	if (_s88_port_id >= start_adr && _s88_port_id < start_adr + num_inputs && _s88_bus_id == bus_id) {
 		uint8_t index = _s88_port_id - start_adr;
-		sendS88Event(((uint32_t)_s88_bus_id << 16) + _s88_port_id, hash, (trk_state_logic[index / 8] >> (index % 8)) & 0b1, (trk_state_last[index / 8] >> (index % 8)) & 0b1);
+		sendS88Event(((uint32_t)_s88_bus_id << 16) + _s88_port_id, (trk_state_logic[index / 8] >> (index % 8)) & 0b1, (trk_state_last[index / 8] >> (index % 8)) & 0b1);
 	}
 }
 
 void reportAllInputs(void) {
 	for (uint8_t i = 0; i < num_inputs; i++) {
-		sendS88Event(((uint32_t)bus_id << 16) + i + start_adr, hash, (trk_state_logic[i / 8] >> (i % 8)) & 0b1, (trk_state_last[i / 8] >> (i % 8)) & 0b1);
+		sendS88Event(((uint32_t)bus_id << 16) + i + start_adr, (trk_state_logic[i / 8] >> (i % 8)) & 0b1, (trk_state_last[i / 8] >> (i % 8)) & 0b1);
 	}
 }
 
@@ -317,7 +304,7 @@ void handleCanFramePointer(canFrame *frame_in) {
 			// THIS SECTION IS REQUIRED FOR THE BOOTLOADER TO WORK DURING NORMAL OPARATION
 			
 			if (frame_in->resp == 0 && frame_in->dlc == 4) {
-				if (compareUID(frame_in->data, uid) == 1) {
+				if (compareUID(frame_in->data, mcan_uid) == 1) {
 					
 					// Write bootloader request flag to EEPROM and reset.
 					eeprom_update_byte((void *)EEPROM_BOOTLOADER_FLAG, 1);
@@ -329,7 +316,7 @@ void handleCanFramePointer(canFrame *frame_in) {
 		}
 		case CMD_PING : {
 			// Ping
-			if (frame_in->resp == 0 && silent == 0) sendPingFrame(uid, hash, VERSION, TYPE);
+			if (frame_in->resp == 0 && silent == 0) sendPingFrame(VERSION, TYPE);
 			break;
 		}
 		case CMD_S88_EVENT : {
@@ -345,25 +332,25 @@ void handleCanFramePointer(canFrame *frame_in) {
 		}
 		case CMD_CONFIG : {
 			// Config data
-			if (frame_in->resp == 0 && compareUID(frame_in->data, uid) == 1 && silent == 0) {
+			if (frame_in->resp == 0 && compareUID(frame_in->data, mcan_uid) == 1 && silent == 0) {
 				switch (frame_in->data[4]) {
 					case 0 :
-					sendDeviceInfo(uid, hash, id, 0, 5, ITEM, NAME);
+					sendDeviceInfo(id, 0, 5, ITEM, NAME);
 					break;
 					case 1 :
-					sendConfigInfoSlider(uid, hash, 1, 0, 0xff, t_led_brightness_set, "Melder-Helligkeit_0_255");
+					sendConfigInfoSlider(1, 0, 0xff, t_led_brightness_set, "Melder-Helligkeit_0_255");
 					break;
 					case 2 :
-					sendConfigInfoSlider(uid, hash, 2, 1, 32, num_inputs, "Verwendete Eing\u00E4nge_1_32");
+					sendConfigInfoSlider(2, 1, 32, num_inputs, "Verwendete Eing\u00E4nge_1_32");
 					break;
 					case 3 :
-					sendConfigInfoDropdown(uid, hash, 3, 5, (uint8_t)pgm_read_byte(&trk_sense_reverse_table[trk_sense_ports]), "Anzahl Sense-Eing\u00E4nge_0_1_2_4_8");
+					sendConfigInfoDropdown(3, 5, (uint8_t)pgm_read_byte(&trk_sense_reverse_table[trk_sense_ports]), "Anzahl Sense-Eing\u00E4nge_0_1_2_4_8");
 					break;
 					case 4:
-					sendConfigInfoSlider(uid, hash, 4, 0, 0xffff, 0, "Buskennung_0_65535");
+					sendConfigInfoSlider(4, 0, 0xffff, 0, "Buskennung_0_65535");
 					break;
 					case 5:
-					sendConfigInfoSlider(uid, hash, 5, 1, 0xffff, 1, "Startadresse_1_65535");
+					sendConfigInfoSlider(5, 1, 0xffff, 1, "Startadresse_1_65535");
 					break;
 					default : {
 						break;
@@ -375,49 +362,49 @@ void handleCanFramePointer(canFrame *frame_in) {
 		
 		case SYS_CMD : {
 			// Write config value
-			if (frame_in->resp == 0 && compareUID(frame_in->data, uid) == 1 && frame_in->data[4] == SYS_STAT && frame_in->dlc == 8) {
+			if (frame_in->resp == 0 && compareUID(frame_in->data, mcan_uid) == 1 && frame_in->data[4] == SYS_STAT && frame_in->dlc == 8) {
 				uint16_t value = ((uint16_t)frame_in->data[6] << 8) + (uint16_t)frame_in->data[7];
 				
 				switch (frame_in->data[5]) {
 					case 1: // LED Brightness
-					sendConfigConfirm(uid, hash, 1, updateLEDBrightness(value));
+					sendConfigConfirm(1, updateLEDBrightness(value));
 					break;
 					case 2: // Number of inputs
-					sendConfigConfirm(uid, hash, 2, updateNumInputs(value));
+					sendConfigConfirm(2, updateNumInputs(value));
 					break;
 					case 3: // Number of sense ports
-					sendConfigConfirm(uid, hash, 3, updateSensePorts(value));
+					sendConfigConfirm(3, updateSensePorts(value));
 					break;
 					case 4: // Bus ID
-					sendConfigConfirm(uid, hash, 4, updateBusID(value));
+					sendConfigConfirm(4, updateBusID(value));
 					break;
 					case 5: // Start address
-					sendConfigConfirm(uid, hash, 5, updateStartAdr(value));
+					sendConfigConfirm(5, updateStartAdr(value));
 					break;
 					default:
-					sendConfigConfirm(uid, hash, frame_in->data[5], 0);
+					sendConfigConfirm(frame_in->data[5], 0);
 					break;
 					
 				}
 				
 			// Send config value
-			} else if (frame_in->resp == 0 && compareUID(frame_in->data, uid) == 1 && frame_in->data[4] == SYS_STAT && frame_in->dlc == 6) {
+			} else if (frame_in->resp == 0 && compareUID(frame_in->data, mcan_uid) == 1 && frame_in->data[4] == SYS_STAT && frame_in->dlc == 6) {
 				
 				switch (frame_in->data[5]) {
 					case 1: // LED Brightness
-					sendStatus(uid, hash, 1, t_led_brightness_set);
+					sendStatus(1, t_led_brightness_set);
 					break;
 					case 2: // Number of inputs
-					sendStatus(uid, hash, 2, num_inputs);
+					sendStatus(2, num_inputs);
 					break;
 					case 3: // Number of sense ports
-					sendStatus(uid, hash, 3, (uint8_t)pgm_read_byte(&trk_sense_reverse_table[trk_sense_ports]));
+					sendStatus(3, (uint8_t)pgm_read_byte(&trk_sense_reverse_table[trk_sense_ports]));
 					break;
 					case 4: // Bus ID
-					sendStatus(uid, hash, 4, bus_id);
+					sendStatus(4, bus_id);
 					break;
 					case 5: // Start address
-					sendStatus(uid, hash, 5, start_adr);
+					sendStatus(5, start_adr);
 					break;
 					default:
 					break;
@@ -448,7 +435,7 @@ void updateOccupationLogic(void) {
 				// Change logic state on occupation
 				trk_state_logic[i] &= ~(1 << j);
 				trk_state_last[i] |= (1 << j);
-				sendS88Event(((uint32_t)bus_id << 16) + (8 * i + j) + start_adr, hash, (~trk_bit_logic & 0b1), (~trk_bit_actual & 0b1));
+				sendS88Event(((uint32_t)bus_id << 16) + (8 * i + j) + start_adr, (~trk_bit_logic & 0b1), (~trk_bit_actual & 0b1));
 				} else if (trk_bit_actual == 0) {
 				// Reset timeout when occupation returns
 				trk_timeout_flag[i] &= ~(1 << j);
@@ -457,7 +444,7 @@ void updateOccupationLogic(void) {
 				// Wait for timeout before resetting occupation
 				trk_state_logic[i] |= (1 << j);
 				trk_state_last[i] &= ~(1 << j);
-				sendS88Event(((uint32_t)bus_id << 16) + (8 * i + j) + start_adr, hash, (~trk_bit_logic & 0b1), (~trk_bit_actual & 0b1));
+				sendS88Event(((uint32_t)bus_id << 16) + (8 * i + j) + start_adr, (~trk_bit_logic & 0b1), (~trk_bit_actual & 0b1));
 				trk_timeout_flag[i] &= ~(1 << j);
 				trk_timeout[i][j] = 0;
 				} else if (trk_bit_logic < trk_bit_actual && trk_timeout[i][j] == 0 && ((trk_bit_sense == 1) || (trk_bit_sense_mask == 1))) {
@@ -505,8 +492,8 @@ int main(void)
 	// Get serial number and calculate UID and hash
 	serial_nbr = (uint16_t)(boot_signature_byte_get(22) << 8) | boot_signature_byte_get(23);
 	id = serial_nbr;
-	uid = BASE_UID + serial_nbr;
-	hash = generateHash(uid);
+	//uid = BASE_UID + serial_nbr;
+	//hash = generateHash(uid);
 	
 	cli();	
 	
@@ -524,7 +511,7 @@ int main(void)
 	sei();
 	
 	// Init CAN bus
-	mcp2515_init();
+	mcan_init(BASE_UID + serial_nbr);
 	
 	/************************************************************************/
 	/* MAIN LOOP                                                            */
