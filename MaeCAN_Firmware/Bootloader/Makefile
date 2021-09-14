@@ -242,6 +242,7 @@ build_all:
 	@$(MAKE) build_BAK-01
 	@$(MAKE) build_MP5x16_V1_0
 	@$(MAKE) build_Dx32_1280_V1_0
+	@$(MAKE) build_NSGM
 
 
 # Boardspezifische Werte für MP5x16_V1_0:
@@ -263,6 +264,16 @@ build_BAK-01: LDFLAGS += -Wl,--section-start=.text=0x7000
 build_BAK-01: compile_msg build clean_list
 
 BAK-01: begin gccversion build_BAK-01 end
+
+# Boardspezifische Werte NScale Grundmodul (NSGM):
+build_NSGM: MCU = atmega328p
+build_NSGM: F_CPU = 16000000
+build_NSGM: BOARD = NSGM
+build_NSGM: CDEFS += -DTYPE=0x70
+build_NSGM: LDFLAGS += -Wl,--section-start=.text=0x7000
+build_NSGM: compile_msg build clean_list
+
+NSGM: begin gccversion build_NSGM end
 
 # Boardspezifische Werte Dx32(1280):
 build_Dx32_1280_V1_0: MCU = atmega1280

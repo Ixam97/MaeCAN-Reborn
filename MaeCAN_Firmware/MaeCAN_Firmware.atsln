@@ -20,6 +20,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{ABC080
 		Common\uart.h = Common\uart.h
 	EndProjectSection
 EndProject
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "MP5+D", "MP5+D\MP5+D.cproj", "{E56B7AE9-3B9D-4951-8AFC-6B8EFC26E4F1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|AVR = Debug|AVR
@@ -38,6 +40,10 @@ Global
 		{FB7FDC5E-9AD5-4B37-8753-F6008C70EA03}.Debug|AVR.Build.0 = Debug|AVR
 		{FB7FDC5E-9AD5-4B37-8753-F6008C70EA03}.Release|AVR.ActiveCfg = Release|AVR
 		{FB7FDC5E-9AD5-4B37-8753-F6008C70EA03}.Release|AVR.Build.0 = Release|AVR
+		{E56B7AE9-3B9D-4951-8AFC-6B8EFC26E4F1}.Debug|AVR.ActiveCfg = Debug|AVR
+		{E56B7AE9-3B9D-4951-8AFC-6B8EFC26E4F1}.Debug|AVR.Build.0 = Debug|AVR
+		{E56B7AE9-3B9D-4951-8AFC-6B8EFC26E4F1}.Release|AVR.ActiveCfg = Release|AVR
+		{E56B7AE9-3B9D-4951-8AFC-6B8EFC26E4F1}.Release|AVR.Build.0 = Release|AVR
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

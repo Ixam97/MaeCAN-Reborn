@@ -9,8 +9,8 @@
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
  * MaeCAN Bootloader
- * V 1.6
- * [2021-03-13.1]
+ * V 1.7
+ * [2021-09-14.1]
  */
 
 /*
@@ -19,7 +19,7 @@
  * 
  *  Einstellungen in Atmel Studio:
  *  ATmega328P: Toolchain -> AVR/GNU Linker -> Misc.: -Wl,--section-start=.text=0x7000
- * 				Fuses:
+ * 				Fuses: FD D8 FF
  *	ATmega2560: Toolchain -> AVR/GNU Linker -> Misc.: -Wl,--section-start=.text=0x3f000
 				Fuses: FF 92 FD
  *  ATmega1280: Toolchain -> AVR/GNU Linker -> Misc.: -Wl,--section-start=.text=0x1f000
@@ -74,6 +74,14 @@
 	#define NAME "M\u00E4CAN 32-fach Gleisbelegtmelder"
 	#define ITEM "Dx32"
 	#define BASE_UID 0x4d430000
+#elif TYPE == 0x70
+	#define PAGE_COUNT 224
+	#define LED_PORT PORTB
+	#define LED_DDR DDRB
+	#define LED_PIN PB1
+	#define NAME "NScale Grundmodul"
+	#define ITEM "NSGM"
+	#define BASE_UID 0x19000000
 #else
 	#error "No device type has been set!"
 #endif
@@ -215,12 +223,12 @@ int main(void)
 			
 			if (frame_in.cmd == CMD_PING && frame_in.resp == 0) {
 				sendPingFrame(0, TYPE);
-			} else if (frame_in.cmd == CMD_CONFIG && frame_in.resp == 0 && compareUID(frame_in.data, can_uid) && frame_in.data[4] == 0) {
+			} else if (frame_in.cmd == CMD_CONFIG && frame_in.resp == 0 && compareUID(frame_in.data, mcan_uid) && frame_in.data[4] == 0) {
 				sendDeviceInfo(serial_nbr, 0, 0, ITEM, NAME);
 			} else if (frame_in.cmd == 0x40) {
 				if (updating == 0) {
 					// Bootloader in den Update-Modus versetzen, wenn Updater Ping-Antwort best�tigt:
-					if (compareUID(frame_in.data, can_uid)) {
+					if (compareUID(frame_in.data, mcan_uid)) {
 						if (frame_in.dlc == 7 && frame_in.resp == 1 && frame_in.data[4] == 0x01){
 							if (frame_in.data[6] == 1) {
 								updating = 1;
@@ -237,7 +245,7 @@ int main(void)
 						uint8_t frame_index = (frame_in.hash - 0x301);
 						memcpy(&page_buffer[frame_index * 8], frame_in.data, 8);
 						
-					} else if (compareUID(frame_in.data, can_uid)) {
+					} else if (compareUID(frame_in.data, mcan_uid)) {
 						switch (frame_in.data[4]) {
 							case 0x04 : {
 								// Page-Start:

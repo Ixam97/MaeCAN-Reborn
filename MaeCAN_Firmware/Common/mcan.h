@@ -8,7 +8,17 @@
  * ----------------------------------------------------------------------------
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
- * [2021-03-13.2]
+ * [2021-03-13.1]
+ */
+
+/**
+ * @mainpage
+ * 
+ * The MCAN library enables AVR microcontrollers to communicate over a CAN-Bus using the Märklin CAN protocol (https://www.maerklin.de/fileadmin/media/service/software-updates/cs2CAN-Protokoll-2_0.pdf)
+ * 
+ * @note Currently only the ATmega328P, ATmega1280 and ATmega2560 are supported. Other controllers can be added easily. Please contact the author for help.
+ * 
+ * @author Maximilian Goldschmidt https://github.com/Ixam97
  */
 
 /** 
@@ -35,30 +45,33 @@
 /*
 * Address areas of local IDs
 */
-#define MM_ACC 			0x3000	// Magnetartikel Motorola
-#define DCC_ACC 		0x3800	// Magbetartikel NRMA_DCC
-#define MM_TRACK 		0x0000	// Gleissignal Motorola
-#define DCC_TRACK 		0xC000	// Gleissignal NRMA_DCC
+#define MM_ACC 			0x3000	/**< Address range for Märklin Motorola accessorys */
+#define DCC_ACC 		0x3800	/**< Address range for DCC accessorys */
+#define MM_TRACK 		0x0000	/**< Address range for Märklin Motorola locos */
+#define DCC_TRACK 		0xC000	/**< Address range for DCC locos */
 
 /*
 * Märklin CAN commands
 */
-#define SYS_CMD			0x00 	// Systembefehle
- 	#define SYS_STOP 	0x00 	// System - Stopp
- 	#define SYS_GO		0x01	// System - Go
- 	#define SYS_HALT	0x02	// System - Halt
- 	#define SYS_STAT	0x0b	// System - Status (sendet geanderte Konfiguration oder übermittelt Messwerte)
-#define CMD_SWITCH_ACC 	0x0b	// Magnetartikel Schalten
-#define CMD_S88_EVENT	0x11	// Rückmelde-Event
-#define CMD_PING 		0x18	// CAN-Teilnehmer anpingen
-#define CMD_CONFIG		0x1d	// Konfiguration
-#define CMD_BOOTLOADER	0x1B
+#define SYS_CMD			0x00 	/**< System commands */
+ 	#define SYS_STOP 	0x00 	/**< System subcommand "STOP" */
+ 	#define SYS_GO		0x01	/**< System subcommand "GO" */
+ 	#define SYS_HALT	0x02	/**< System subcommand "Emergency stop" */
+ 	#define SYS_STAT	0x0b	/**< System subcommand to send changed config values or meassurement values */
+#define CMD_SWITCH_ACC 	0x0b	/**< Command to switch accessorys */
+#define CMD_S88_EVENT	0x11	/**< Command to send S88 events */
+#define CMD_PING 		0x18	/**< Command to send or request pings */
+#define CMD_CONFIG		0x1d	/**< Command to send or request config or meassurement deffinitions */
+#define CMD_BOOTLOADER	0x1B	/**< Märklin bootloader command */
+#define CMD_MCAN_BOOT	0x40	/**< MCAN bootloader command */
 
 #ifndef BAUD_RATE
-#define BAUD_RATE 500000
+#define BAUD_RATE 500000		/**< Baudrate for SLCAN communication */
 #endif // BAUD RATE
 
-#define CANBUFFERSIZE	16 // 2^n
+///@cond F00
+
+#define CANBUFFERSIZE	16 // 2^n	
 #define CANBUFFERMASK	(CANBUFFERSIZE - 1)
 #define BUFFER_FAIL		0
 #define BUFFER_SUCCESS	1
@@ -147,6 +160,8 @@
 #define is_low(bit)                (! (bit ## _PIN & (1 << bit)))
 
 #endif // IO_MAKROS
+
+///@endcond
 
 /**
  * @brief Märklin CAN frame structure
