@@ -9,8 +9,13 @@
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
  * MaeCAN Bootloader
- * V 1.7
- * [2021-09-14.1]
+ * V 1.8
+ * [2022-03-06.1]
+ *
+ * V1.8: 
+ *		- Update-Abbruch fix
+ * TODO V1.9:
+ *		- Unterstützung von 16Bit Page-Counts
  */
 
 /*
@@ -21,9 +26,11 @@
  *  ATmega328P: Toolchain -> AVR/GNU Linker -> Misc.: -Wl,--section-start=.text=0x7000
  * 				Fuses: FD D8 FF
  *	ATmega2560: Toolchain -> AVR/GNU Linker -> Misc.: -Wl,--section-start=.text=0x3f000
-				Fuses: FF 92 FD
+ *				Fuses: FF D2 FD
  *  ATmega1280: Toolchain -> AVR/GNU Linker -> Misc.: -Wl,--section-start=.text=0x1f000
- * 				Fuses: FF 92 FF
+ * 				Fuses: FF D2 FF
+ *	ATmega16A:  Toolchain -> AVR/GNU Linker -> Misc.: -Wl,--section-start=.text=0xXXXXX
+ *				Fuses: XX XX XX
  */
 
 
@@ -82,6 +89,14 @@
 	#define NAME "NScale Grundmodul"
 	#define ITEM "NSGM"
 	#define BASE_UID 0x19000000
+#elif TYPE == 0x54
+	#define PAGE_COUNT
+	#define LED_PORT
+	#define LED_DDR
+	#define LED_PIN
+	#define NAME "M\u00E4CAN 16-Fach Schaltdecoder"
+	#define ITEM "Ox16"
+	#define BASE_UID 0x4d430000
 #else
 	#error "No device type has been set!"
 #endif
@@ -127,6 +142,27 @@ void startApp(void) {
 	EIND = 0;
 	#endif
 	start();
+}
+
+void errasePage(uint32_t page)
+{
+	// uint16_t i;
+	uint8_t sreg;
+
+	/* Disable interrupts */
+	sreg = SREG;
+	cli();
+
+	eeprom_busy_wait ();
+
+	boot_page_erase (page);
+	boot_spm_busy_wait ();      /* Wait until the memory is erased. */
+	/* Reenable RWW-section again. We need this if we want to jump back */
+	/* to the application after bootloading. */
+	boot_rww_enable ();
+
+	/* Re-enable interrupts (if they were ever enabled). */
+	SREG = sreg;
 }
 
 void programPage (uint32_t page, uint8_t *buf)
@@ -273,8 +309,9 @@ int main(void)
 							}
 							case 0x06 : {
 								// Update-Abbruch:
-								memset(page_buffer, 0xff, SPM_PAGESIZE);
-								programPage(0, page_buffer);
+								for (uint32_t i = 0; i < PAGE_COUNT; i++) {
+									errasePage(i*SPM_PAGESIZE);
+								}
 								updating = 0;
 								break;
 							}
@@ -285,8 +322,9 @@ int main(void)
 							}
 							default : {
 								// Unbekannter Befehl, abbrechen:
-								memset(page_buffer, 0xff, SPM_PAGESIZE);
-								programPage(0, page_buffer);
+								for (uint32_t i = 0; i < PAGE_COUNT; i++) {
+									errasePage(i*SPM_PAGESIZE);
+								}
 								updating = 0;
 								break;
 							}
