@@ -9,12 +9,12 @@
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
  * MaeCAN Bootloader
- * V 1.8
- * [2022-03-06.1]
+ * V 1.9
+ * [2022-03-07.1]
  *
  * V1.8: 
  *		- Update-Abbruch fix
- * TODO V1.9:
+ * V1.9:
  *		- Unterstützung von 16Bit Page-Counts
  */
 
@@ -222,7 +222,7 @@ int main(void)
 	frame_out.cmd = 0x40;
 	frame_out.resp = 1;
 	frame_out.hash = mcan_hash;
-	frame_out.dlc = 6;
+	frame_out.dlc = 7;
 	frame_out.data[0] = (mcan_uid >> 24);
 	frame_out.data[1] = (mcan_uid >> 16);
 	frame_out.data[2] = (mcan_uid >> 8);
@@ -237,6 +237,7 @@ int main(void)
 		// Bootloader triggered:
 		frame_out.data[4] = 0x01;
 		frame_out.data[5] = TYPE;
+		frame_out.data[6] = VERSION;
 		sendCanFrame(&frame_out);
 		
 		frame_out.dlc = 7;
@@ -283,6 +284,7 @@ int main(void)
 						
 					} else if (compareUID(frame_in.data, mcan_uid)) {
 						switch (frame_in.data[4]) {
+							/* LEGACY */
 							case 0x04 : {
 								// Page-Start:
 								page_index = frame_in.data[5];
@@ -302,6 +304,28 @@ int main(void)
 									// Page schreiben:
 									programPage(frame_in.data[5] * SPM_PAGESIZE, page_buffer);
 									frame_out.data[6] = 1;
+								}
+								sendCanFrame(&frame_out);
+								frame_index_check = 0;
+								break;
+							}
+							/* END LEGACY */
+							case 0x14 : {
+								page_index = (frame_in.data[5] << 8) | frame_in.data[6];
+								break;
+							}
+							case 0x15 : {
+								frame_out.data[4] = 0x15;
+								frame_out.data[5] = frame_in.data[5];
+								frame_out.data[6] = frame_in.data[6];
+								
+								if ((page_index != ((frame_in.data[5] << 8) | frame_in.data[6])) || (frame_index_check != (SPM_PAGESIZE / 8))) {
+									// Page fehlerhaft, erneut anfordern:
+									frame_out.dlc = 5;
+								} else {
+									// Page schreiben:
+									frame_out.dlc = 7;
+									programPage(page_index * SPM_PAGESIZE, page_buffer);
 								}
 								sendCanFrame(&frame_out);
 								frame_index_check = 0;

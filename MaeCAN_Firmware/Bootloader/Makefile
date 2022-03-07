@@ -22,6 +22,9 @@ FORMAT = ihex
 # Target file name (without extension).
 TARGET = Bootloader
 
+# Version of the Bootloader (Legacy = 0).
+VERSION = 1
+
 # List C source files here. (C dependencies are automatically generated.)
 SRC = $(TARGET).c 				\
 	  ../Common/mcan.c			\
@@ -67,6 +70,7 @@ CSTANDARD = -std=gnu99
 
 # Place -D or -U options here
 CDEFS = -DF_CPU=$(F_CPU)UL
+CDEFS += -DVERSION=$(VERSION)
 
 # uncomment and adapt these line if you want different UART library buffer size
 #CDEFS += -DUART_RX_BUFFER_SIZE=128
@@ -289,8 +293,8 @@ Dx32_1280_V1_0: begin gccversion build_Dx32_1280_V1_0 end
 # build: elf hex eep lss sym
 build: hex
 	@$(AVRSIZE)
-	@echo Copying hex-file to ./hex/$(TARGET)_$(BOARD)_$(MCU).hex
-	@$(COPY) $(TARGET).hex ./hex/$(TARGET)_$(BOARD)_$(MCU).hex
+	@echo Copying hex-file to ./hex/$(TARGET)_v$(VERSION)_$(BOARD)_$(MCU).hex
+	@$(COPY) $(TARGET).hex ./hex/$(TARGET)_v$(VERSION)_$(BOARD)_$(MCU).hex
 
 elf: $(TARGET).elf
 hex: $(TARGET).hex
