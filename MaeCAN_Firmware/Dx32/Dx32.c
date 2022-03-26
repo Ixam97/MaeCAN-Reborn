@@ -10,7 +10,7 @@
  * ----------------------------------------------------------------------------
  * MaeCAN Dx32
  * V 1.1
- * [2021-03-13.1]
+ * [2022-03-26.1]
  */
 
 /* 
@@ -88,8 +88,8 @@ uint8_t reset_request;					// 1 if software reset is requested, else 0
 uint32_t heartbeat_millis;				// Time counter for status LED
 uint32_t last_heartbeat_millis;
 
-char uart_to_can_buffer[25];
-uint8_t uart_to_can_buffer_index;
+//char uart_to_can_buffer[25];
+//uint8_t uart_to_can_buffer_index;
 
 uint8_t t_led_brightness;
 uint8_t t_led_brightness_set;

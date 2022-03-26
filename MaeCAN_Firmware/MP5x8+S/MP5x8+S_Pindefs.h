@@ -8,14 +8,14 @@
  * ----------------------------------------------------------------------------
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
- * MaeCAN MP5+D
- * V 0.6
+ * MaeCAN MP5x8+S
+ * V 0.1
  * [2022-03-26.1]
  */
 
 
-#ifndef MP5_D_PINDEFS_H_
-#define MP5_D_PINDEFS_H_
+#ifndef MP5_S_PINDEFS_H_
+#define MP5_S_PINDEFS_H_
 
 #define IO_PORTS 16
 
@@ -85,4 +85,4 @@ void heartbeat();
 void resetLEDs(void);
 
 
-#endif /* MP5_D_PINDEFS_H_ */
+#endif /* MP5_S_PINDEFS_H_ */

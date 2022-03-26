@@ -8,7 +8,7 @@
  * ----------------------------------------------------------------------------
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
- * [2021-03-13.2]
+ * [2022-03-26.1]
  */
 
 #include "mcan.h"
@@ -16,6 +16,7 @@
 static canFrame can_buffer[CANBUFFERSIZE];
 static uint8_t can_buffer_read;
 static uint8_t can_buffer_write;
+static uint8_t can_buffer_n_elements;
 
 uint32_t mcan_uid;
 uint16_t mcan_hash;
@@ -389,31 +390,41 @@ static uint8_t getCanFrame(canFrame *frame) {
 }
 
 static uint8_t CanBufferIn(void) {
-	uint8_t next = (can_buffer_write + 1) & CANBUFFERMASK;
-	
-	if (can_buffer_read == next)
-	return BUFFER_FAIL; // Full
-	
-	getCanFrame(&can_buffer[can_buffer_write & CANBUFFERMASK]);
-	
-	can_buffer_write = next;
-	
-	return BUFFER_SUCCESS;
+	uint8_t return_code;
+	ATOMIC_BLOCK(ATOMIC_FORCEON) {
+		can_buffer_write++;
+		if (can_buffer_write >= CANBUFFERSIZE)
+			can_buffer_write = 0;
+		getCanFrame(&can_buffer[can_buffer_write]);
+		if (can_buffer_n_elements < CANBUFFERSIZE) {
+			can_buffer_n_elements++;
+		}
+		if (can_buffer_n_elements >= CANBUFFERSIZE) {
+			can_buffer_read++;
+			if (can_buffer_read >= CANBUFFERSIZE)
+				can_buffer_read = 0;
+		}
+		return_code = BUFFER_SUCCESS;
+	}
+	return return_code;
 }
 
 static uint8_t CanBufferOut(canFrame *pFrame) {
-	if (can_buffer_read == can_buffer_write)
-	return BUFFER_FAIL; // Empty
-	
+	uint8_t return_code;
 	ATOMIC_BLOCK(ATOMIC_FORCEON) {
-		*pFrame = can_buffer[can_buffer_read];
+		if (can_buffer_n_elements == 0){
+			return_code = BUFFER_FAIL; // Empty
+		} else {
+			*pFrame = can_buffer[can_buffer_read];
+			if (can_buffer_n_elements > 0)
+				can_buffer_n_elements--;
+			can_buffer_read++;
+			if (can_buffer_read >= CANBUFFERSIZE)
+				can_buffer_read = 0;
+			return_code = BUFFER_SUCCESS;
+		}
 	}
-		
-	can_buffer_read++;
-	if (can_buffer_read >= CANBUFFERSIZE)
-	can_buffer_read = 0;
-	
-	return BUFFER_SUCCESS;
+	return return_code;
 }
 
 uint8_t readCanFrame(canFrame *pFrame) {

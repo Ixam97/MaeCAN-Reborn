@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>7.0</ProjectVersion>
     <ToolchainName>com.Atmel.AVRGCC8.C</ToolchainName>
-    <ProjectGuid>{e56b7ae9-3b9d-4951-8afc-6b8efc26e4f1}</ProjectGuid>
+    <ProjectGuid>{fe8a1d35-9428-4fe6-97cc-b21ecfb072e2}</ProjectGuid>
     <avrdevice>ATmega2560</avrdevice>
     <avrdeviceseries>none</avrdeviceseries>
     <OutputType>Executable</OutputType>
@@ -12,9 +12,9 @@
     <OutputFileName>$(MSBuildProjectName)</OutputFileName>
     <OutputFileExtension>.elf</OutputFileExtension>
     <OutputDirectory>$(MSBuildProjectDirectory)\$(Configuration)</OutputDirectory>
-    <AssemblyName>MP5+D</AssemblyName>
-    <Name>MP5+D</Name>
-    <RootNamespace>MP5+D</RootNamespace>
+    <AssemblyName>MP5x8+S</AssemblyName>
+    <Name>MP5x8+S</Name>
+    <RootNamespace>MP5x8+S</RootNamespace>
     <ToolchainFlavour>Native</ToolchainFlavour>
     <KeepTimersRunning>true</KeepTimersRunning>
     <OverrideVtor>false</OverrideVtor>
@@ -30,15 +30,15 @@
     <EraseKey />
     <AsfFrameworkConfig>
       <framework-data xmlns="">
-        <options />
-        <configurations />
-        <files />
-        <documentation help="" />
-        <offline-documentation help="" />
-        <dependencies>
-          <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.47.0" />
-        </dependencies>
-      </framework-data>
+  <options />
+  <configurations />
+  <files />
+  <documentation help="" />
+  <offline-documentation help="" />
+  <dependencies>
+    <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.47.0" />
+  </dependencies>
+</framework-data>
     </AsfFrameworkConfig>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
@@ -144,13 +144,13 @@
       <SubType>compile</SubType>
       <Link>Common\uart.h</Link>
     </Compile>
-    <Compile Include="MP5+D.c">
+    <Compile Include="MP5x8+S.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="MP5+D_Pindefs.c">
+    <Compile Include="MP5x8+S_Pindefs.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="MP5+D_Pindefs.h">
+    <Compile Include="MP5x8+S_Pindefs.c">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>

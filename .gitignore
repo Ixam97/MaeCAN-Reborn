@@ -2,6 +2,7 @@
 **/.vscode
 **/Debug
 **/Release
+**/LED-Test
 *.b#*
 *.s#*
 **/docs
@@ -9,3 +10,6 @@
 **/.dep
 **/common_BAK
 *.zip
+*.exe
+*.xlsx
+*.docx

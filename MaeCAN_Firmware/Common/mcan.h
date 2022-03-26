@@ -1,5 +1,4 @@
-/*
- * ----------------------------------------------------------------------------
+/* ----------------------------------------------------------------------------
  * "THE BEER-WARE LICENSE" (Revision 42):
  * Maximilian Goldschmidt wrote this file. As long as you retain this notice you
  * can do whatever you want with this stuff. If we meet some day, and you think
@@ -8,7 +7,7 @@
  * ----------------------------------------------------------------------------
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
- * [2021-03-13.1]
+ * [2022-03-26.1]
  */
 
 /**
@@ -71,8 +70,7 @@
 
 ///@cond F00
 
-#define CANBUFFERSIZE	16 // 2^n	
-#define CANBUFFERMASK	(CANBUFFERSIZE - 1)
+#define CANBUFFERSIZE	16
 #define BUFFER_FAIL		0
 #define BUFFER_SUCCESS	1
 

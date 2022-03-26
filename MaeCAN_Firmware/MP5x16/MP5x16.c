@@ -9,15 +9,15 @@
  * https://github.com/Ixam97
  * ----------------------------------------------------------------------------
  * MaeCAN MP5x16
- * V 1.6 
- * [2021-09-14.1]
+ * V 1.7 
+ * [2022-03-26.1]
  */
 
 
 #define NAME "M\u00E4CAN 16-fach MP5-Decoder"
 #define BASE_UID 0x4D430000
 #define ITEM "MP5x16"
-#define VERSION 0x0106
+#define VERSION 0x0107
 #define TYPE 0x0052
 
 #include <avr/io.h>
@@ -301,7 +301,7 @@ int main(void)
 				aux_1_lastreport[i] = 1;
 				is_position[i] = 1;
 				sendACCEvent((uint32_t)getAccUID(i), 1, 0);
-			} else if (aux_1_laststate[i] == 0 && aux_1_lastreport[i] == 1 && connected[i] == 1) {
+			} else if (aux_1_laststate[i] == 0 && aux_1_lastreport[i] == 1 && active == 0 && connected[i] == 1) {
 				sendS88Event(((uint32_t)eeprom_read_word((void *)4) << 16) + eeprom_read_word((void *)((i*4)+8)), 1, 0);
 				aux_1_lastreport[i] = 0;
 			}
@@ -309,8 +309,8 @@ int main(void)
 				sendS88Event(((uint32_t)eeprom_read_word((void *)4) << 16) + eeprom_read_word((void *)((i*4)+8)) + 1, 0, 1);
 				aux_2_lastreport[i] = 1;
 				is_position[i] = 0;
-				sendACCEvent((uint32_t)getAccUID(i), 0, 0 && connected[i] == 1);
-			} else if (aux_2_laststate[i] == 0 && aux_2_lastreport[i] == 1) {
+				sendACCEvent((uint32_t)getAccUID(i), 0, 0);
+			} else if (aux_2_laststate[i] == 0 && aux_2_lastreport[i] == 1 && active == 0 && connected[i] == 1) {
 				sendS88Event(((uint32_t)eeprom_read_word((void *)4) << 16) + eeprom_read_word((void *)((i*4)+8)) + 1, 1, 0);
 				aux_2_lastreport[i] = 0;
 			}

@@ -10,7 +10,7 @@
  * ----------------------------------------------------------------------------
  * MaeCAN Bootloader
  * V 1.9
- * [2022-03-07.1]
+ * [2022-03-26.1]
  *
  * V1.8: 
  *		- Update-Abbruch fix
@@ -272,7 +272,22 @@ int main(void)
 								eeprom_update_byte((void *)1023, 0);
 							}
 						} else if (frame_in.dlc == 4) {
-							eeprom_update_byte((void *)1023, 1);
+							// Bootloader triggered:
+							frame_out.data[4] = 0x01;
+							frame_out.data[5] = TYPE;
+							frame_out.data[6] = VERSION;
+							sendCanFrame(&frame_out);
+							
+							frame_out.dlc = 7;
+							frame_out.data[4]++;
+							frame_out.data[5] = (uint8_t)(SPM_PAGESIZE >> 8);
+							frame_out.data[6] = (uint8_t)SPM_PAGESIZE;
+							sendCanFrame(&frame_out);
+							
+							frame_out.data[4]++;
+							frame_out.data[5] = (uint8_t)(PAGE_COUNT >> 8);
+							frame_out.data[6] = (uint8_t)PAGE_COUNT;
+							sendCanFrame(&frame_out);
 						}
 					}
 				} else {

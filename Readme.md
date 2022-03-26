@@ -3,14 +3,24 @@
 Die zweite Generaton der MäCAN-Komponenten für den [Märklin CAN-Bus][candoku]
 
 - <b>[MäCAN _Bootloader_][bootloader]</b><br>
-    <img src="https://img.shields.io/badge/Software-V1.7-007EC6?style=flat-square"/>
+    <img src="https://img.shields.io/badge/Software-V1.9-007EC6?style=flat-square"/>
 - <b>[MäCAN _MP5x16_][mp5x16]</b><br>
     <img src="https://img.shields.io/badge/Hardware-V1.0-FE7D37?style=flat-square"/>
-    <img src="https://img.shields.io/badge/Software-V1.6-FE7D37?style=flat-square"/>
+    <img src="https://img.shields.io/badge/Software-V1.7-FE7D37?style=flat-square"/>
 - <b>[MäCAN _Dx32_][dx32]</b><br>
     <img src="https://img.shields.io/badge/Hardware-V1.1-FF4D47?style=flat-square"/>
     <img src="https://img.shields.io/badge/Software-V1.1-FF4D47?style=flat-square"/>
 ## Changelog
+
+### [2022-03-26.1]
+#### Hinzugefügt:
+ - MP5x8+S: Kombination aus Signal- und Weichendecoder zum testen, kompatibel mit der MP5x16-Platine.
+#### Änderungen:
+ - MP5+D | Rückmeldefehler behoben, Einstellungen für die Schaltzeit und -verzögerung.
+ - MP5x16 | Rückmeldefehler behoben.
+ - Bootloader | Unterstützt nun 16-Bit Page-Addresse (Rückwärtskomatibel mit alten Updatern).
+ - Bootloader | Nach einem fehlerhaften oder abgebrochenen Update wird der Programmspeicher gelöscht. Das Gerät verbleibt im Booloader, bis ein Update erfolgreich abgeschlossen wurde.
+ - Allgemein | Der CAN-Ringpuffer blockiert nicht mehr, wenn er voll läuft.
 
 ### [2021-09-14.1]
 #### Hinzugefügt:
